@@ -54,7 +54,7 @@ export function SetupForm(props: {
             <div className="checklist">
               {props.ecSensors.length ? props.ecSensors.map((o) => <Check key={o.id} list="ecSensorIds" o={o} />) : <span className="small muted">No EC sensors in this room.</span>}
             </div>
-            <span className="field-help">Drives refresh volume against Grodan substrate-EC targets.</span>
+            <span className="field-help">Drives refresh volume against the phase's substrate-EC targets.</span>
           </div>
         </div>
       </div>
@@ -86,7 +86,7 @@ export function SetupForm(props: {
           <Field label="Lights on (local)" help="24 h, HH:MM"><Textfield value={v.lightsOn} onChange={(e) => set('lightsOn', (e.target as HTMLInputElement).value)} /></Field>
           <Field label="Photoperiod (h)" help="12 for flower, 18 for veg"><Textfield type="number" step="0.5" value={String(v.photoperiodHours)} onChange={num('photoperiodHours')} /></Field>
           <Field label="Time zone" help="IANA name, e.g. America/Denver"><Textfield value={v.timezone} onChange={(e) => set('timezone', (e.target as HTMLInputElement).value)} /></Field>
-          <Field label="Block volume (L)" help="Grodan 6×6×4 in ≈ 2.4 L"><Textfield type="number" step="0.1" value={String(v.blockVolumeL)} onChange={num('blockVolumeL')} /></Field>
+          <Field label="Block volume (L)" help="6×6×4 in block ≈ 2.4 L"><Textfield type="number" step="0.1" value={String(v.blockVolumeL)} onChange={num('blockVolumeL')} /></Field>
           <Field label="Emitter flow (ml/min)" help="2 L/h dripper = 33 ml/min"><Textfield type="number" step="1" value={String(v.emitterFlowMlPerMin)} onChange={num('emitterFlowMlPerMin')} /></Field>
           <Field label="Emitters per block"><Textfield type="number" step="1" value={String(v.emittersPerBlock)} onChange={num('emittersPerBlock')} /></Field>
         </div>

@@ -9,7 +9,7 @@ export default async function LoginPage() {
     <div className="login-wrap stack gap-300">
       <div className="stack gap-100">
         <Heading size="xlarge">Sign in</Heading>
-        <span className="subtle">Crop Steering Autopilot for Growlink</span>
+        <span className="subtle">Growlink Rock Wool Crop Steering</span>
       </div>
       <LoginForm />
     </div>

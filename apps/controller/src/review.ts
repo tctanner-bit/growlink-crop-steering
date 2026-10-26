@@ -13,7 +13,7 @@ export const roomTuning = (phase: any, t: Partial<Tuning>) => clampTuning(phase,
 
 /**
  * Daily review, run when a cycle closes (at the next morning's first shot, once ODB is known):
- * 1) deterministic rules move tuning toward Grodan targets (always on);
+ * 1) deterministic rules move tuning toward the phase targets (always on);
  * 2) the AI agronomist reviews the trajectory and proposes bounded refinements
  *    (applied in `apply` mode, recorded as suggestions in `suggest` mode).
  */

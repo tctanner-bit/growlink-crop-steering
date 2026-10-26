@@ -15,9 +15,9 @@ export default async function RoomsPage() {
   if (!connections.length) {
     return (
       <div className="stack gap-300" style={{ maxWidth: 720 }}>
-        <Heading size="xlarge">Crop Steering Autopilot</Heading>
+        <Heading size="xlarge">Rock Wool Crop Steering</Heading>
         <p className="subtle" style={{ font: 'var(--ds-font-body-large)' }}>
-          Grodan 5-Phase steering for stonewool blocks — P1 ramp, P2 maintenance and overnight dry-back — run against your
+          Growlink's rock wool crop steering program — P1 ramp, P2 maintenance and overnight dry-back — run against your
           Growlink sensors and valves, tuned every night by Nova.
         </p>
         <div className="row gap-150 wrap">

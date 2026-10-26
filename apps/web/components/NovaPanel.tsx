@@ -48,7 +48,7 @@ export function NovaPanel({ roomId, aiMode, reviews, generating, aiConfigured }:
       </div>
 
       {busy ? (
-        <div className="subtle">Reviewing the last cycle against Grodan targets…</div>
+        <div className="subtle">Reviewing the last cycle against the phase targets…</div>
       ) : latest ? (
         <ReviewBody r={latest} roomId={roomId} />
       ) : (

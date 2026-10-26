@@ -166,7 +166,7 @@ export default async function RoomPage({ params, searchParams }: { params: Promi
           <NovaPanel roomId={room.id} aiMode={room.ai_mode} reviews={reviews as any} generating={generating} aiConfigured={!!health?.info?.ai} />
 
           <div className="card stack gap-150">
-            <Heading size="small" as="h2">Grodan targets · phase {room.phase}, day {dip}</Heading>
+            <Heading size="small" as="h2">Targets · phase {room.phase}, day {dip}</Heading>
             <table className="data">
               <tbody>
                 <tr><td>Day-level WC</td><td className="num">{targets.dayWc.min}–{targets.dayWc.max}%</td></tr>

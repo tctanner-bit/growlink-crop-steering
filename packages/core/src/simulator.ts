@@ -6,7 +6,7 @@ import { idKey } from './growlink/client';
 import type { PhaseId } from './profiles';
 
 /**
- * Physically-motivated stonewool block model. Water content rises with absorbed irrigation,
+ * Physically-motivated rock wool block model. Water content rises with absorbed irrigation,
  * falls with transpiration (diurnal, phase-dependent), drains above field capacity, and
  * substrate EC concentrates as water is taken up and refreshes toward drip EC with drain.
  */

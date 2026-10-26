@@ -2,7 +2,7 @@
   "name": "growlink-crop-steering",
   "private": true,
   "version": "0.1.0",
-  "description": "Crop Steering Autopilot \u2014 Grodan 5-Phase irrigation steering with AI, built on the Growlink Developer API",
+  "description": "Growlink Rock Wool Crop Steering \u2014 AI irrigation steering for rock wool, built on the Growlink Developer API",
   "workspaces": [
     "packages/*",
     "apps/*"

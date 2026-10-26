@@ -1,5 +1,5 @@
-// Grodan 5-Phase Model — Large Blocks, One-Transplant System.
-// Root-zone & irrigation targets from Grodan's phase tables (Tables 2.1, 3.1, 4.1, 5.1).
+// Growlink Rock Wool Crop Steering — phase profiles for large rock wool blocks.
+// Root-zone & irrigation targets per phase.
 // Guidance strings are short paraphrases used to brief the AI reviewer.
 
 export type PhaseId = 1 | 2 | 3 | 4 | 5;

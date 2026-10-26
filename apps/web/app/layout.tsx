@@ -11,8 +11,8 @@ import { controllerHealth } from '@/lib/data';
 import { ControllerBadge } from '@/components/ControllerBadge';
 
 export const metadata: Metadata = {
-  title: 'Crop Steering Autopilot — Growlink',
-  description: 'Grodan 5-Phase crop steering with AI, on the Growlink Developer API.',
+  title: 'Rock Wool Crop Steering — Growlink',
+  description: 'Growlink rock wool crop steering with AI.',
   icons: { icon: '/icon.svg' },
 };
 

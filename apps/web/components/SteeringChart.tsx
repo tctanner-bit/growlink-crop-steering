@@ -26,7 +26,7 @@ interface Props {
 const H_WC = 220, H_EC = 120, GAP = 28, M = { l: 44, r: 16, t: 10, b: 24 };
 
 /**
- * Two small multiples on one time axis — WC (with its Grodan day band) above EC (with its
+ * Two small multiples on one time axis — WC (with its day band) above EC (with its
  * substrate band). Never a dual axis. Night (lights-off) shaded; shots as ticks; crosshair tooltip.
  */
 export function SteeringChart(p: Props) {
@@ -46,7 +46,7 @@ export function SteeringChart(p: Props) {
   const x = (t: number) => M.l + ((t - x0) / (x1 - x0)) * iw;
   const pts = useMemo(() => p.points.map((d) => ({ ...d, ms: Date.parse(d.t) })).filter((d) => d.ms >= x0), [p.points, x0]);
 
-  // Grodan targets ramp day by day within a phase, so the band is drawn per light cycle.
+  // Phase targets ramp day by day within a phase, so the band is drawn per light cycle.
   const bands = useMemo(() => {
     const out: { a: number; b: number; wc: Range; ec: Range }[] = [];
     const [h, m] = p.lightsOn.split(':').map(Number);
@@ -182,7 +182,7 @@ export function SteeringChart(p: Props) {
         </div>
       )}
       <div className="legend" style={{ marginTop: 8 }}>
-        <span><span className="legend-swatch" style={{ background: 'var(--ds-background-accent-green-subtlest)', border: '1px solid var(--ds-border)' }} />Grodan target band (per day)</span>
+        <span><span className="legend-swatch" style={{ background: 'var(--ds-background-accent-green-subtlest)', border: '1px solid var(--ds-border)' }} />Target band (per day)</span>
         <span><span className="legend-swatch" style={{ background: 'var(--ds-background-neutral)' }} />Lights off</span>
         <span><span className="legend-swatch" style={{ background: 'var(--ds-chart-gray-bolder)', width: 3 }} />Shot</span>
         {p.shots.some((s) => s.shadow) && <span><span className="legend-swatch" style={{ border: '1px solid var(--ds-chart-gray-bolder)', width: 3 }} />Shadow decision</span>}

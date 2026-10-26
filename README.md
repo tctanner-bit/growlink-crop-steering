@@ -1,9 +1,9 @@
-# Crop Steering Autopilot
+# Growlink Rock Wool Crop Steering
 
-Grodan 5-Phase crop steering for stonewool blocks, running on the Growlink Developer API. Multi-tenant: a grower
-pastes a Growlink API key, maps substrate sensors and irrigation valves, picks a phase, and the autopilot runs
-Grodan's Day-Dynamic model — P1 ramp, P2 maintenance, P3 overnight dry-back — with full valve control.
-Every night **Nova**, the AI agronomist, reviews the closed cycle against Grodan's targets and tunes tomorrow.
+Growlink's rock wool crop steering program, running on the Growlink Developer API. Multi-tenant: a grower
+pastes a Growlink API key, maps substrate sensors and irrigation valves, picks a phase, and the program runs
+the daily cycle — P1 ramp, P2 maintenance, P3 overnight dry-back — with full valve control.
+Every night **Nova**, the AI agronomist, reviews the closed cycle against the phase targets and tunes tomorrow.
 
 ```
 ┌────────────────────┐   server actions    ┌──────────────┐   30 s tick, batched   ┌────────────────────┐
@@ -11,7 +11,7 @@ Every night **Nova**, the AI agronomist, reviews the closed cycle against Grodan
 │ Atlassian DS/Rovo) │ ◀── reads state ─── │  (Supabase)  │ ── commands, config ─▶ │ leader + standby   │
 └────────────────────┘                     └──────────────┘                        └─────────┬──────────┘
                                                                                             │ Gl-Api-Key (decrypted in memory)
-                               packages/core: Grodan profiles · steering engine ·           ▼
+                               packages/core: phase profiles · steering engine ·            ▼
                                simulator · AI review · Growlink client             api.developer.growlink.com
 ```
 
@@ -19,8 +19,8 @@ Every night **Nova**, the AI agronomist, reviews the closed cycle against Grodan
 
 | | |
 |---|---|
-| **Phases** | Grodan 5-Phase Model (Large Blocks, One-Transplant). Phases 2–5 are steered; phase 1 (propagation) is tray-weight driven, so it is monitored only. Targets ramp within a phase — e.g. phase 2 day-level WC steps from ~80% to ~65%, phase 3 overnight dry-back grows from 10–15% to ~25% by day 21. |
-| **Day-Dynamic engine** | P1 starts at lights-on + delay *or* after a 1–2% WC drop; ramp shots until WC reaches the day band; P2 shots fire on inter-irrigation dry-back and refill toward the top of the band; the last shot is timed to hit the overnight dry-back target. Substrate EC above/below target enlarges/trims shots. |
+| **Phases** | Five phases for large rock wool blocks, propagation to ripening. Phases 2–5 are steered; phase 1 (propagation) is tray-weight driven, so it is monitored only. Targets ramp within a phase — e.g. phase 2 day-level WC steps from ~80% to ~65%, phase 3 overnight dry-back grows from 10–15% to ~25% by day 21. |
+| **Daily-cycle engine** | P1 starts at lights-on + delay *or* after a 1–2% WC drop; ramp shots until WC reaches the day band; P2 shots fire on inter-irrigation dry-back and refill toward the top of the band; the last shot is timed to hit the overnight dry-back target. Substrate EC above/below target enlarges/trims shots. |
 | **Learning** | Each shot's measured WC response calibrates shot size; daytime and overnight dry-back rates are learned and used to move the last-shot time. |
 | **Daily tuning** | A deterministic rule engine (always on) nudges stop time, shot size and P1 start toward the targets. Nova (Claude) then reviews the trajectory and proposes bounded changes — **Suggest** or **Auto-apply**. Every change is clamped to hard bounds and to a maximum move per review. |
 | **Modes** | **Off** · **Shadow** (real sensors, decisions logged, your Growlink program still irrigates; observed irrigations are tracked) · **Simulate** (a physical block model behind the same API interface) · **Live** (autopilot owns the valves). |
@@ -72,7 +72,7 @@ Supabase project `crop-steering` (Growlink org, us-east-1) is created with the s
 ## Repository
 
 ```
-packages/core       Grodan profiles, steering engine, rule tuning, simulator, AI review prompt/parse, Growlink client, vault
+packages/core       Phase profiles, steering engine, rule tuning, simulator, AI review prompt/parse, Growlink client, vault
 apps/controller     Control loop, valve executor + watchdog, nightly review (Anthropic SDK), migrations
 apps/web            Next.js 16 app on Atlassian Design System (Atlaskit) with Rovo UI for AI surfaces
 db/migrations       Postgres schema (+ Supabase RLS policies)

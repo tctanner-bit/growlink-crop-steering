@@ -3,7 +3,7 @@ import { PHASES, PhaseId, ResolvedTargets, resolveTargets, mid } from './profile
 import { DaySummary, Tuning } from './tuning';
 
 /**
- * Grodan Day-Dynamic steering engine — a pure function of (time, config, readings, state).
+ * Rock wool daily-cycle steering engine — a pure function of (time, config, readings, state).
  *
  *   night ──(lights on + delay, or WC drops 1–2%)──▶ P1 ramp ──(WC reaches day band)──▶ P2 maintain
  *   P2 ──(last-shot deadline: lights-off − stop hours)──▶ P3 overnight dry-back ──▶ next cycle

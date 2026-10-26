@@ -19,7 +19,7 @@ function input(over: Partial<StepInput> & { now: Date; wc?: number | null; ec?: 
   };
 }
 
-describe('Grodan targets', () => {
+describe('phase targets', () => {
   it('ramps phase 3 overnight dry-back from ~10–15% to 22–25% by day 21', () => {
     expect(resolveTargets(3, 1).odb).toEqual({ min: 10, max: 15 });
     expect(resolveTargets(3, 21).odb).toEqual({ min: 22, max: 25 });
@@ -31,7 +31,7 @@ describe('Grodan targets', () => {
   });
 });
 
-describe('Day-Dynamic engine', () => {
+describe('daily-cycle engine', () => {
   it('waits at night and before the P1 start delay', () => {
     const r = step(input({ now: at('2026-11-05T06:30') }));
     expect(r.actions).toHaveLength(0);
@@ -120,7 +120,7 @@ describe('Day-Dynamic engine', () => {
 });
 
 describe('closed loop (engine + simulated blocks)', () => {
-  it('holds phase 3 within Grodan targets after the first days', async () => {
+  it('holds phase 3 within its targets after the first days', async () => {
     const res = await runHarness({ phase: 3, days: 12 });
     const settled = res.days.filter((d) => d.dayInPhase >= 4 && d.odb != null);
     expect(settled.length).toBeGreaterThan(5);
@@ -145,7 +145,7 @@ describe('tuning, aggregation, AI parsing, vault', () => {
   it('clamps tuning into hard bounds', () => {
     const t = clampTuning(3, { ...defaultTuning(3), p2ShotPct: 99, stopBeforeLightsOffHours: -4 });
     expect(t.p2ShotPct).toBe(8);
-    expect(t.stopBeforeLightsOffHours).toBe(1); // phase 3 floor: Grodan's ~2 h stop minus 1 h
+    expect(t.stopBeforeLightsOffHours).toBe(1); // phase 3 floor: the ~2 h stop minus 1 h
     const { applied } = applyChanges(3, defaultTuning(3), [{ key: 'p2TriggerPct', to: 20, reason: 'x' }]);
     expect(applied[0].to).toBe(7);
   });

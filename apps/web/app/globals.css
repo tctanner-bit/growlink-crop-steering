@@ -46,7 +46,7 @@ a { color: var(--ds-link); }
 .tile { padding: var(--ds-space-200); border-radius: var(--ds-border-radius-200, 8px); background: var(--ds-background-neutral-subtle); border: 1px solid var(--ds-border); display: flex; flex-direction: column; gap: var(--ds-space-050); }
 .tile-target { font: var(--ds-font-body-small); color: var(--ds-text-subtle); }
 
-/* Band bar: where a value sits against its Grodan target band. */
+/* Band bar: where a value sits against its target band. */
 .bandbar { position: relative; height: 6px; border-radius: 3px; background: var(--ds-background-neutral); margin-top: var(--ds-space-075); }
 .bandbar-band { position: absolute; top: 0; bottom: 0; background: var(--ds-background-success-bold); opacity: .35; border-radius: 3px; }
 .bandbar-dot { position: absolute; top: -3px; width: 12px; height: 12px; border-radius: 50%; background: var(--ds-text); border: 2px solid var(--ds-surface); transform: translateX(-50%); }

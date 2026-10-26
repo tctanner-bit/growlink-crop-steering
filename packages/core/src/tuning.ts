@@ -138,7 +138,7 @@ export interface DaySummary {
 
 /**
  * Deterministic daily tuning — the safety net that steers even with the AI disabled.
- * Small, bounded moves toward the Grodan targets.
+ * Small, bounded moves toward the phase targets.
  */
 export function ruleBasedAdjustments(
   phase: PhaseId,

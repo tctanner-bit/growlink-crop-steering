@@ -7,7 +7,7 @@ import { applyChanges, clampTuning, DaySummary, defaultTuning, ruleBasedAdjustme
 
 /**
  * Accelerated closed-loop run: engine + simulated block, 30-second ticks, daily rule tuning.
- * Used by tests and `npm run sim` to prove the loop converges on Grodan targets.
+ * Used by tests and `npm run sim` to prove the loop converges on the phase targets.
  */
 export interface HarnessOptions {
   phase: PhaseId;

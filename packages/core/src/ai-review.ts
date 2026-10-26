@@ -2,7 +2,7 @@ import { PHASES, PhaseId, ResolvedTargets } from './profiles';
 import { DaySummary, Tuning, TuningKey, TUNING_LABELS, tuningBounds, applyChanges, TuningChange, limitStep, MAX_STEP_PER_REVIEW } from './tuning';
 
 /**
- * The nightly AI agronomist. It reads the closed cycle against Grodan's targets and the
+ * The nightly AI agronomist. It reads the closed cycle against the phase targets and the
  * recent trajectory, then proposes bounded tuning changes through a single tool call.
  */
 
@@ -36,7 +36,7 @@ export const REVIEW_TOOL = {
   input_schema: {
     type: 'object' as const,
     properties: {
-      summary: { type: 'string', description: '2–4 plain sentences for the grower: what happened, how it compares to Grodan targets, what changes tomorrow. No preamble.' },
+      summary: { type: 'string', description: '2–4 plain sentences for the grower: what happened, how it compares to the phase targets, what changes tomorrow. No preamble.' },
       assessment: { type: 'string', enum: ['on_track', 'watch', 'off_track'] },
       changes: {
         type: 'array',
@@ -76,8 +76,8 @@ export function buildReviewPrompt(ctx: ReviewContext) {
   const t = ctx.targets;
   const bounds = tuningBounds(ctx.phase);
   const system = [
-    'You are the crop-steering agronomist inside Growlink\'s Crop Steering Autopilot. You review one room\'s closed irrigation cycle on Grodan stonewool large blocks and tune tomorrow\'s irrigation.',
-    'You steer with Grodan\'s 5-Phase Model and Day-Dynamic model: P1 ramps WC from the overnight low into the day band, P2 holds it with shots triggered by inter-irrigation dry-back, P3 is the overnight dry-back from the last shot to the next morning\'s first shot.',
+    'You are the crop-steering agronomist inside Growlink\'s Crop Steering Autopilot. You review one room\'s closed irrigation cycle on rock wool blocks and tune tomorrow\'s irrigation.',
+    'You steer with Growlink\'s rock wool program (phases 1–5) and its daily cycle: P1 ramps WC from the overnight low into the day band, P2 holds it with shots triggered by inter-irrigation dry-back, P3 is the overnight dry-back from the last shot to the next morning\'s first shot.',
     'Levers: shot size moves day-level WC and drain/EC; the P2 dry-back trigger sets steering intensity (larger = more generative); the last-shot time sets the overnight dry-back; the P1 start sets how early WC recovers.',
     'Rules: move toward the targets in small steps (one or two parameters per day); never chase a single noisy day when the trend is fine; explain each change by citing the metric and target; keep the summary short, concrete and assertive — written for a head grower.',
     'A deterministic rule engine has already applied safety adjustments, listed below. You may keep, refine or reverse them. Stay within the hard bounds; values outside are clamped.',
@@ -88,7 +88,7 @@ export function buildReviewPrompt(ctx: ReviewContext) {
     `Room: ${ctx.roomName}`,
     `Phase ${p.id} — ${p.name}, day ${ctx.dayInPhase} (typical ${p.durationDays.min}–${p.durationDays.max} days). Objective: ${p.objective}`,
     '',
-    'Grodan targets for this day:',
+    'Targets for this day:',
     `- Day-level WC ${t.dayWc.min}–${t.dayWc.max}%`,
     `- Overnight dry-back ${t.odb.min}–${t.odb.max}%`,
     `- Inter-irrigation (P2) dry-back ${t.p2Dryback.min}–${t.p2Dryback.max}%`,

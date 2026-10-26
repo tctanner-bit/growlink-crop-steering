@@ -1,9 +1,9 @@
 # Steering logic
 
-Source of truth: `packages/core/src/engine.ts` (decisions), `profiles.ts` (Grodan targets), `tuning.ts` (parameters,
+Source of truth: `packages/core/src/engine.ts` (decisions), `profiles.ts` (phase targets), `tuning.ts` (parameters,
 bounds, daily rules), `ai-review.ts` (Nova).
 
-## Grodan targets (Large Blocks, One-Transplant System)
+## Phase targets (large rock wool blocks)
 
 | Phase | Days | Day-level WC | Overnight DB | P2 DB | Substrate EC | Drain | Shots |
 |---|---|---|---|---|---|---|---|
