@@ -40,6 +40,7 @@ Valves are real hardware. The design assumes any process can die at any moment.
 7. **Emergency floor** fires up to two small shots, day or night, if WC collapses.
 8. **Go-live friction**: typed confirmation, and the UI steers growers to Shadow first.
 9. **SIGTERM** closes all open valves before exit.
+10. **OFF is confirmed, not assumed.** After every OFF the controller re-reads live device state; a valve still reporting ON keeps its run open and the watchdog re-sends OFF every 2 s, alerting after 3 attempts. (The Core firmware's `switchDevice` can return 200 for a command it did not apply.)
 
 ## Run it locally
 
@@ -80,6 +81,13 @@ The UI uses the Atlassian Design System — Atlaskit components and `@atlaskit/t
 Rovo UI is applied only to AI surfaces, per its guidelines: one `appearance="rovo"` button per region ("Review last
 cycle"), Rovo's four flat colors (blue, purple, saffron, lime — clockwise, hard stops) as the generative border
 **only while a review is generating**, and never as decoration. The Rovo logo is not used; the AI is Growlink's Nova.
+
+## Roadmap — v2: timed device commands
+
+v1 sends ON and OFF. v2 adds `PUT …/state?value=true&duration=45`, executed by the controller itself, so a valve
+closes even if this service and the cloud are unreachable. Firmware design: optional `Duration`/`RevertTo` on
+`switchDevice`, expiry persisted and restored like manual tasks (with a cap on restored time), safety overrides
+still honored, and a capability flag so the cloud never sends a duration to firmware that would ignore it.
 
 ## Growlink API asks
 
