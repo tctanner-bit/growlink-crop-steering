@@ -1,0 +1,20 @@
+# fly launch --no-deploy --config apps/controller/fly.toml  (from the repo root)
+# fly secrets set DATABASE_URL=... VAULT_MASTER_KEY=... ANTHROPIC_API_KEY=...
+# fly deploy --config apps/controller/fly.toml --dockerfile apps/controller/Dockerfile
+# fly scale count 2   ← one leader + one hot standby whose watchdog closes valves if the leader dies
+app = "growlink-crop-steering-controller"
+primary_region = "den"
+kill_signal = "SIGTERM"
+kill_timeout = 30
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  TICK_MS = "30000"
+  WATCHDOG_MS = "2000"
+  AI_MODEL = "claude-sonnet-5-5"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
