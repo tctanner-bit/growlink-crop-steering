@@ -124,3 +124,16 @@ table.data td.ok { color: var(--ds-text-success); } table.data td.off { color: v
   .grid-rooms { grid-template-columns: 1fr; }
   .metric { font: var(--ds-font-heading-medium); }
 }
+
+/* Phase stepper */
+.phase-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--ds-space-075); }
+.phase-steps li { margin: 0; }
+.phase-steps button { all: unset; box-sizing: border-box; width: 100%; display: flex; flex-direction: column; gap: var(--ds-space-075); padding: var(--ds-space-075) var(--ds-space-050); border-radius: var(--ds-border-radius); cursor: pointer; }
+.phase-steps button:hover:not(:disabled) { background: var(--ds-background-neutral-subtle-hovered); }
+.phase-steps button:focus-visible { outline: 2px solid var(--ds-border-focused); outline-offset: 1px; }
+.phase-steps button:disabled { cursor: default; }
+.phase-bar { display: block; height: 6px; border-radius: 3px; background: var(--ds-background-neutral); overflow: hidden; }
+.phase-bar > span { display: block; height: 100%; background: var(--ds-background-brand-bold); }
+.phase-label { font: var(--ds-font-body-small); color: var(--ds-text-subtlest); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.phase-steps li[data-state='done'] .phase-label { color: var(--ds-text-subtle); }
+.phase-steps li[data-state='current'] .phase-label { color: var(--ds-text); font-weight: var(--ds-font-weight-bold, 700); }

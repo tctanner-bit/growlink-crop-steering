@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { ProgressTracker } from '@atlaskit/progress-tracker';
 import Button from '@atlaskit/button/new';
 import Textfield from '@atlaskit/textfield';
 import Modal, { ModalBody, ModalFooter, ModalHeader, ModalTitle, ModalTransition } from '@atlaskit/modal-dialog';
@@ -16,21 +15,29 @@ export function PhaseControl({ roomId, phase, dayInPhase, today }: { roomId: str
   const [pending, start] = useTransition();
   const p = PHASES[phase];
   const overdue = dayInPhase > p.durationDays.max;
-  const items = PHASE_ORDER.map((id) => ({
-    id: String(id),
-    label: PHASES[id].shortName,
-    percentageComplete: id < phase ? 100 : id === phase ? Math.min(100, Math.round((dayInPhase / p.durationDays.max) * 100)) : 0,
-    status: (id < phase ? 'visited' : id === phase ? 'current' : 'unvisited') as 'visited' | 'current' | 'unvisited',
-    onClick: id !== phase ? () => { setDate(today); setTarget(id); } : undefined,
-  }));
+  const open = (id: PhaseId) => { setErr(null); setDate(today); setTarget(id); };
+  const pct = (id: PhaseId) => id < phase ? 100 : id === phase ? Math.min(100, Math.round((dayInPhase / p.durationDays.max) * 100)) : 0;
   return (
     <div className="stack gap-100">
-      <ProgressTracker items={items} spacing="compact" />
+      <ol className="phase-steps" aria-label="Crop phases">
+        {PHASE_ORDER.map((id) => {
+          const state = id < phase ? 'done' : id === phase ? 'current' : 'next';
+          return (
+            <li key={id} data-state={state}>
+              <button type="button" disabled={id === phase} aria-current={id === phase ? 'step' : undefined}
+                onClick={() => open(id)} title={id === phase ? 'Current phase' : `Move to phase ${id}`}>
+                <span className="phase-bar"><span style={{ width: `${pct(id)}%` }} /></span>
+                <span className="phase-label">{id} · {PHASES[id].shortName}</span>
+              </button>
+            </li>
+          );
+        })}
+      </ol>
       <div className="row gap-100 small subtle wrap">
         <span>Day {dayInPhase} of {p.durationDays.min === p.durationDays.max ? p.durationDays.max : `${p.durationDays.min}–${p.durationDays.max}`} · {p.objective}</span>
         <span className="grow" />
         {phase < 5 && (
-          <Button spacing="compact" appearance={overdue ? 'primary' : 'default'} onClick={() => { setDate(today); setTarget((phase + 1) as PhaseId); }}>
+          <Button spacing="compact" appearance={overdue ? 'primary' : 'default'} onClick={() => open((phase + 1) as PhaseId)}>
             Advance to phase {phase + 1}
           </Button>
         )}
