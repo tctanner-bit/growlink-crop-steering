@@ -59,11 +59,15 @@ npm run dev:web                               # terminal 2 → http://localhost:
 
 ## Deploy
 
-1. **Supabase** — create a project; enable email auth. Use the *session pooler* connection string as `DATABASE_URL`.
-2. **Controller (Fly.io)** — see `apps/controller/fly.toml`. `fly secrets set DATABASE_URL VAULT_MASTER_KEY ANTHROPIC_API_KEY`, deploy, `fly scale count 2`. Migrations run on boot.
-3. **Web (Vercel)** — root directory `apps/web`; env `DATABASE_URL`, `VAULT_MASTER_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Add `<your-domain>/auth/callback` to Supabase redirect URLs.
+Supabase project `crop-steering` (Growlink org, us-east-1) is created with the schema and RLS applied.
 
-`VAULT_MASTER_KEY` must be identical on web and controller.
+1. **Database password** — Supabase → crop-steering → Settings → Database → *Reset database password*. Then Connect → copy two URIs:
+   - **Session pooler** (port 5432) → controller `DATABASE_URL` (its leader lock needs a session).
+   - **Transaction pooler** (port 6543) → web `DATABASE_URL`.
+2. **Vault key** — `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`. Same value on web and controller.
+3. **Web (Vercel)** — Add New → Project → import `tctanner-bit/growlink-crop-steering`, Root Directory `apps/web`. Env: `DATABASE_URL` (6543), `VAULT_MASTER_KEY`, `NEXT_PUBLIC_SUPABASE_URL=https://nidmpmbmtgwvboviqgep.supabase.co`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` (Supabase → API keys → anon). Deploy.
+4. **Auth URLs** — Supabase → Authentication → URL Configuration: Site URL = the Vercel URL; add `<vercel-url>/auth/callback` to redirect URLs.
+5. **Controller (Fly.io)** — from the repo root, see the commands at the top of `fly.toml`.
 
 ## Repository
 

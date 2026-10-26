@@ -1,0 +1,21 @@
+# Controller (always-on). Run from the repo root:
+#   fly apps create growlink-crop-steering-controller
+#   fly secrets set DATABASE_URL="<Supabase SESSION pooler URI, port 5432>" VAULT_MASTER_KEY="<same as Vercel>" ANTHROPIC_API_KEY="<key>"
+#   fly deploy
+#   fly scale count 2      ← leader + hot standby; the standby's watchdog closes valves if the leader dies
+app = "growlink-crop-steering-controller"
+primary_region = "iad"
+kill_signal = "SIGTERM"
+kill_timeout = 30
+
+[build]
+  dockerfile = "apps/controller/Dockerfile"
+
+[env]
+  TICK_MS = "30000"
+  WATCHDOG_MS = "2000"
+  AI_MODEL = "claude-sonnet-5-5"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

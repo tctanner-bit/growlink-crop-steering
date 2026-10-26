@@ -6,7 +6,9 @@ const url = process.env.DATABASE_URL ?? '';
 
 export const pool = g.__glPool ?? new pg.Pool({
   connectionString: url,
-  max: 5,
+  // Serverless: one connection per function instance, via Supabase's transaction pooler (port 6543).
+  max: process.env.VERCEL ? 1 : 5,
+  idleTimeoutMillis: 10_000,
   ssl: /sslmode=require|supabase\.co|pooler\.supabase/.test(url) ? { rejectUnauthorized: false } : undefined,
 });
 if (process.env.NODE_ENV !== 'production') g.__glPool = pool;

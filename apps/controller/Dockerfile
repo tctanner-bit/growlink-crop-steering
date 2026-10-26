@@ -5,7 +5,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY packages/core/package.json packages/core/
 COPY apps/controller/package.json apps/controller/
-COPY apps/web/package.json apps/web/
+COPY apps/web/package.json apps/web/package.json
 RUN npm ci --workspace @gl-steering/controller --include-workspace-root=false --omit=dev \
  && npm cache clean --force
 COPY packages/core packages/core

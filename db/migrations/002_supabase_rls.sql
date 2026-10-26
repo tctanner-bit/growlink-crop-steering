@@ -1,26 +1,18 @@
--- Row-level security for Supabase. The web app and controller use a server-side Postgres
--- connection (table owner, bypasses RLS) and scope every query by owner. These policies
--- make direct supabase-js access from a browser safe by default. No-op outside Supabase.
+-- Row-level security for Supabase. The web app and controller connect server-side as the
+-- table owner (bypasses RLS) and scope every query by owner. The browser never queries these
+-- tables, so RLS is on everywhere: deny by default, owner read-only on non-secret tables.
+-- `connections` has no policy at all — sealed API keys are never reachable through the Data API.
+-- No-op outside Supabase.
 do $$
+declare t text;
 begin
   if exists (select 1 from pg_namespace where nspname = 'auth') and exists (select 1 from pg_proc where proname = 'uid') then
-    execute 'alter table connections enable row level security';
-    execute 'alter table rooms enable row level security';
-    execute 'alter table room_state enable row level security';
-    execute 'alter table readings enable row level security';
-    execute 'alter table events enable row level security';
-    execute 'alter table valve_runs enable row level security';
-    execute 'alter table day_summaries enable row level security';
-    execute 'alter table reviews enable row level security';
-    execute 'alter table commands enable row level security';
-    execute 'alter table controller_status enable row level security';
-
-    execute $p$create policy connections_owner on connections for select using (owner_id = auth.uid())$p$;
-    execute $p$create policy rooms_owner on rooms for select using (connection_id in (select id from connections where owner_id = auth.uid()))$p$;
-    execute $p$create policy room_state_owner on room_state for select using (room_id in (select r.id from rooms r join connections c on c.id = r.connection_id where c.owner_id = auth.uid()))$p$;
-    execute $p$create policy readings_owner on readings for select using (room_id in (select r.id from rooms r join connections c on c.id = r.connection_id where c.owner_id = auth.uid()))$p$;
-    execute $p$create policy events_owner on events for select using (room_id in (select r.id from rooms r join connections c on c.id = r.connection_id where c.owner_id = auth.uid()))$p$;
-    execute $p$create policy reviews_owner on reviews for select using (room_id in (select r.id from rooms r join connections c on c.id = r.connection_id where c.owner_id = auth.uid()))$p$;
-    execute $p$create policy day_summaries_owner on day_summaries for select using (room_id in (select r.id from rooms r join connections c on c.id = r.connection_id where c.owner_id = auth.uid()))$p$;
+    foreach t in array array['connections','rooms','room_state','readings','events','valve_runs','day_summaries','reviews','commands','controller_status','schema_migrations'] loop
+      execute format('alter table %I enable row level security', t);
+    end loop;
+    execute $p$create policy rooms_owner on rooms for select to authenticated using (connection_id in (select id from connections where owner_id = (select auth.uid())))$p$;
+    foreach t in array array['room_state','readings','events','reviews','day_summaries'] loop
+      execute format($p$create policy %I on %I for select to authenticated using (room_id in (select r.id from rooms r join connections c on c.id = r.connection_id where c.owner_id = (select auth.uid())))$p$, t || '_owner', t);
+    end loop;
   end if;
 end $$;
