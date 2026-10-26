@@ -1,5 +1,9 @@
 # Growlink Rock Wool Crop Steering
 
+> ⚠️ **Growlink Labs experiment.** Experimental and not yet supported. Use caution before giving it control of
+> real valves: run Shadow first, start with one room, and keep your Growlink irrigation program ready as a backup.
+> Release path: **Labs → Beta → General release.**
+
 Growlink's rock wool crop steering program, running on the Growlink Developer API. Multi-tenant: a grower
 pastes a Growlink API key, maps substrate sensors and irrigation valves, picks a phase, and the program runs
 the daily cycle — P1 ramp, P2 maintenance, P3 overnight dry-back — with full valve control.
@@ -38,7 +42,7 @@ Valves are real hardware. The design assumes any process can die at any moment.
 5. **Caps**: per-room max shot seconds, global `HARD_MAX_SHOT_SECONDS`, max shots/day, P1 shot cap, one shot at a time per room.
 6. **Blind = hold.** No fresh WC reading for 2+ minutes → no irrigation and an alert. A WC probe >8% from the median is ignored.
 7. **Emergency floor** fires up to two small shots, day or night, if WC collapses.
-8. **Go-live friction**: typed confirmation, and the UI steers growers to Shadow first.
+8. **Go-live friction**: a Labs-experiment warning the grower must acknowledge, typed confirmation, a standing warning on every Live room, and the UI steers growers to Shadow first.
 9. **SIGTERM** closes all open valves before exit.
 10. **OFF is confirmed, not assumed.** After every OFF the controller re-reads live device state; a valve still reporting ON keeps its run open and the watchdog re-sends OFF every 2 s, alerting after 3 attempts. (The Core firmware's `switchDevice` can return 200 for a command it did not apply.)
 

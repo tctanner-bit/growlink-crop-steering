@@ -21,11 +21,12 @@ export function RoomControls(props: { roomId: string; mode: Mode; paused: boolea
   const [msg, setMsg] = useState<ActionResult | null>(null);
   const [confirmLive, setConfirmLive] = useState(false);
   const [ack, setAck] = useState('');
+  const [labsAck, setLabsAck] = useState(false);
   const [testSecs, setTestSecs] = useState('10');
 
   const run = (fn: () => Promise<ActionResult>) => start(async () => setMsg(await fn()));
   const choose = (m: Mode) => {
-    if (m === 'live') { setAck(''); setConfirmLive(true); return; }
+    if (m === 'live') { setAck(''); setLabsAck(false); setConfirmLive(true); return; }
     run(() => setMode(props.roomId, m));
   };
   const modes = props.isDemo ? MODES.filter((m) => m.id !== 'live' && m.id !== 'shadow') : MODES;
@@ -66,6 +67,10 @@ export function RoomControls(props: { roomId: string; mode: Mode; paused: boolea
             <ModalHeader><ModalTitle appearance="warning">Hand valve control to the autopilot</ModalTitle></ModalHeader>
             <ModalBody>
               <div className="stack gap-150">
+                <SectionMessage appearance="warning" title="Growlink Labs experiment">
+                  <p>This app is experimental. It has not completed Beta testing and is not covered by Growlink support. Software can fail: a missed OFF, a bad sensor or a network outage can over- or under-water a whole room.</p>
+                  <p>Watch this room closely, keep your own irrigation backup ready, and start with one room you can afford to lose.</p>
+                </SectionMessage>
                 <p>The autopilot will force {props.valveCount} valve{props.valveCount === 1 ? '' : 's'} ON and OFF to steer this room. While Live:</p>
                 <ul style={{ margin: 0, paddingLeft: 20 }}>
                   <li>Valves rest in forced OFF between shots, overriding Growlink irrigation programs on them.</li>
@@ -73,12 +78,16 @@ export function RoomControls(props: { roomId: string; mode: Mode; paused: boolea
                   <li>Leaving Live hands the valves back to Growlink automation (AUTO).</li>
                 </ul>
                 <p>Run in Shadow first and confirm the decisions match what you would do.</p>
+                <label className="labs-ack">
+                  <input type="checkbox" checked={labsAck} onChange={(e) => setLabsAck(e.target.checked)} />
+                  <span>I understand this is a Growlink Labs experiment and I am responsible for monitoring this room while it controls real valves.</span>
+                </label>
                 <Textfield placeholder="Type LIVE to confirm" value={ack} onChange={(e) => setAck((e.target as HTMLInputElement).value)} autoFocus />
               </div>
             </ModalBody>
             <ModalFooter>
               <Button appearance="subtle" onClick={() => setConfirmLive(false)}>Cancel</Button>
-              <Button appearance="warning" isDisabled={ack.trim().toUpperCase() !== 'LIVE' || pending}
+              <Button appearance="warning" isDisabled={!labsAck || ack.trim().toUpperCase() !== 'LIVE' || pending}
                 onClick={() => { setConfirmLive(false); run(() => setMode(props.roomId, 'live', true)); }}>Go live</Button>
             </ModalFooter>
           </Modal>

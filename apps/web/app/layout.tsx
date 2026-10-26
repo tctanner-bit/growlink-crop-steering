@@ -44,6 +44,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 </svg>
                 <span className="brand-name">Crop Steering</span>
                 <span className="brand-sub">Growlink</span>
+                <span className="labs-tag">Labs</span>
               </Link>
               {user && (
                 <nav className="topnav">
@@ -54,6 +55,13 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <div className="topbar-right">
                 {user && <ControllerBadge health={health} />}
                 {user && <span className="user-email">{user.email}</span>}
+              </div>
+            </div>
+            <div className="labs-banner" role="note">
+              <div className="labs-banner-inner">
+                <strong>Growlink Labs experiment.</strong>{' '}
+                This app is experimental and not yet supported. Use caution before giving it control of real valves.{' '}
+                <span className="labs-stage">Labs → Beta → General release</span>
               </div>
             </div>
           </header>

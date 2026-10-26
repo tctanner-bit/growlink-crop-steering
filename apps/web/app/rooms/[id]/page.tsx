@@ -63,6 +63,11 @@ export default async function RoomPage({ params, searchParams }: { params: Promi
           Map at least one water-content sensor and one irrigation valve before turning the autopilot on. <Link href={`/rooms/${room.id}/setup`}>Open setup</Link>
         </SectionMessage>
       )}
+      {room.mode === 'live' && (
+        <SectionMessage appearance="warning" title="Live — Growlink Labs experiment">
+          This app is controlling real valves in this room. It is experimental and not yet supported. Check the room in person, keep your Growlink irrigation program ready as a backup, and use <b>All valves off</b> if anything looks wrong.
+        </SectionMessage>
+      )}
       {room.last_error && room.mode !== 'off' && <SectionMessage appearance="error" title="Controller error">{room.last_error}</SectionMessage>}
       {!profile.autopilot && room.mode !== 'off' && (
         <SectionMessage appearance="information">Phase 1 cuttings are irrigated by tray weight (water at a 40–50% weight loss). The autopilot monitors only.</SectionMessage>
