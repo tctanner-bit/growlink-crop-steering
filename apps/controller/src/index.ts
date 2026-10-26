@@ -4,6 +4,7 @@ import { pool, q } from './db';
 import { migrate } from './migrate';
 import { processCommands, tick } from './loop';
 import { closeAllOpenRuns, watchdog } from './executor';
+import { aiStatus } from './ai';
 
 /**
  * Crop Steering Autopilot controller.
@@ -39,7 +40,7 @@ async function heartbeat() {
   await q(`insert into controller_status (id, started_at, heartbeat_at, is_leader, version, info)
            values ($1, $2, now(), $3, $4, $5)
            on conflict (id) do update set heartbeat_at = now(), is_leader = excluded.is_leader, version = excluded.version, info = excluded.info`,
-    [env.instanceId, startedAt, isLeader, env.version, JSON.stringify({ tickMs: env.tickMs, ai: !!env.anthropicApiKey, model: env.aiModel })]);
+    [env.instanceId, startedAt, isLeader, env.version, JSON.stringify({ tickMs: env.tickMs, ai: aiStatus.configured, aiProvider: aiStatus.provider, model: aiStatus.model })]);
 }
 
 function every(ms: number, name: string, fn: () => Promise<void>) {
@@ -55,7 +56,7 @@ function every(ms: number, name: string, fn: () => Promise<void>) {
 
 async function main() {
   await migrate();
-  console.log(`Crop Steering controller ${env.version} (${env.instanceId}) — tick ${env.tickMs} ms, AI ${env.anthropicApiKey ? env.aiModel : 'disabled'}`);
+  console.log(`Crop Steering controller ${env.version} (${env.instanceId}) — tick ${env.tickMs} ms, AI ${aiStatus.configured ? `${aiStatus.provider}/${aiStatus.model}` : 'disabled'}`);
   every(env.watchdogMs, 'watchdog', watchdog);
   every(5_000, 'leader', tryLead);
   every(10_000, 'heartbeat', heartbeat);

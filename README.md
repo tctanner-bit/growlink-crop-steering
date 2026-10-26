@@ -26,7 +26,7 @@ Every night **Nova**, the AI agronomist, reviews the closed cycle against the ph
 | **Phases** | Five phases for large rock wool blocks, propagation to ripening. Phases 2–5 are steered; phase 1 (propagation) is tray-weight driven, so it is monitored only. Targets ramp within a phase — e.g. phase 2 day-level WC steps from ~80% to ~65%, phase 3 overnight dry-back grows from 10–15% to ~25% by day 21. |
 | **Daily-cycle engine** | P1 starts at lights-on + delay *or* after a 1–2% WC drop; ramp shots until WC reaches the day band; P2 shots fire on inter-irrigation dry-back and refill toward the top of the band; the last shot is timed to hit the overnight dry-back target. Substrate EC above/below target enlarges/trims shots. |
 | **Learning** | Each shot's measured WC response calibrates shot size; daytime and overnight dry-back rates are learned and used to move the last-shot time. |
-| **Daily tuning** | A deterministic rule engine (always on) nudges stop time, shot size and P1 start toward the targets. Nova (Claude) then reviews the trajectory and proposes bounded changes — **Suggest** or **Auto-apply**. Every change is clamped to hard bounds and to a maximum move per review. |
+| **Daily tuning** | A deterministic rule engine (always on) nudges stop time, shot size and P1 start toward the targets. Nova (OpenAI by default, or Anthropic) then reviews the trajectory and proposes bounded changes — **Suggest** or **Auto-apply**. Every change is clamped to hard bounds and to a maximum move per review. |
 | **Modes** | **Off** · **Shadow** (real sensors, decisions logged, your Growlink program still irrigates; observed irrigations are tracked) · **Simulate** (a physical block model behind the same API interface) · **Live** (autopilot owns the valves). |
 | **Multi-tenant** | Supabase Auth; each user's connections and rooms are owner-scoped. API keys are sealed with AES-256-GCM (`VAULT_MASTER_KEY`) and never returned to the browser. |
 | **Demo farm** | One click creates three simulated rooms (phases 2, 3, 4) with three days of real engine history. |
@@ -45,6 +45,22 @@ Valves are real hardware. The design assumes any process can die at any moment.
 8. **Go-live friction**: a Labs-experiment warning the grower must acknowledge, typed confirmation, a standing warning on every Live room, and the UI steers growers to Shadow first.
 9. **SIGTERM** closes all open valves before exit.
 10. **OFF is confirmed, not assumed.** After every OFF the controller re-reads live device state; a valve still reporting ON keeps its run open and the watchdog re-sends OFF every 2 s, alerting after 3 attempts. (The Core firmware's `switchDevice` can return 200 for a command it did not apply.)
+
+## Nova's AI key
+
+Nova runs only in the controller. Set the key as a Fly secret — never on Vercel, in `.env` files that get committed,
+or in the database:
+
+```bash
+fly secrets set OPENAI_API_KEY="<key>"      # Fly encrypts it; the app reads it from the environment
+# optional: fly secrets set AI_MODEL="gpt-6-astra"   (default gpt-6.1-sol)
+# optional: AI_PROVIDER=anthropic + ANTHROPIC_API_KEY to use Claude instead
+```
+
+The key is never logged, stored, returned to the browser, or included in error text (errors are redacted before they
+are saved). The web app only sees `{ ai: true, provider, model }` in the controller heartbeat. CI fails if anything
+key-shaped is committed or if `apps/web` references an AI key. Requests use OpenAI's Responses API with `store: false`.
+Use a dedicated OpenAI project key with a monthly budget cap for this app.
 
 ## Run it locally
 

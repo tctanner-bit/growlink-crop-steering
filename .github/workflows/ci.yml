@@ -9,6 +9,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
+      - name: No API keys in the repo
+        run: |
+          if git grep -nE '(sk-proj-|sk-ant-|sk-)[A-Za-z0-9_-]{20,}' -- . ':!package-lock.json'; then
+            echo "::error::Something that looks like an API key is committed. Keys belong in Fly secrets only."; exit 1; fi
+      - name: AI keys stay out of the web app
+        run: |
+          if grep -rnE 'OPENAI_API_KEY|ANTHROPIC_API_KEY' apps/web --include=*.ts --include=*.tsx; then
+            echo "::error::The web app must never read AI keys."; exit 1; fi
       - run: npm ci
       - run: npm run typecheck
       - run: npm test

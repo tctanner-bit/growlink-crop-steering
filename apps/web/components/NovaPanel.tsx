@@ -62,7 +62,7 @@ export function NovaPanel({ roomId, aiMode, reviews, generating, aiConfigured }:
           onClick={() => { setRequested(true); start(async () => { await sendCommand(roomId, 'run_review'); }); }}>
           Review last cycle
         </Button>
-        {!aiConfigured && <span className="small muted">Set ANTHROPIC_API_KEY on the controller to enable Nova.</span>}
+        {!aiConfigured && <span className="small muted">Nova needs an AI key on the controller (OPENAI_API_KEY as a Fly secret).</span>}
       </div>
 
       {rules.length > 0 && (

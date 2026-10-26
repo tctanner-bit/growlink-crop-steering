@@ -1,4 +1,3 @@
-import Anthropic from '@anthropic-ai/sdk';
 import {
   applyChanges, buildReviewPrompt, clampTuning, DaySummary, defaultTuning, parseReview, REVIEW_TOOL,
   resolveTargets, ruleBasedAdjustments, TaskPriority, Tuning, TUNING_LABELS, PHASES,
@@ -6,8 +5,7 @@ import {
 import { addEvent, loadRoom, q } from './db';
 import { env } from './env';
 import { apiFor, isSimulated } from './clients';
-
-const anthropic = env.anthropicApiKey ? new Anthropic({ apiKey: env.anthropicApiKey }) : null;
+import { aiLabel, aiStatus, AI_NOT_CONFIGURED, redact, requestReview } from './ai';
 
 export const roomTuning = (phase: any, t: Partial<Tuning>) => clampTuning(phase, { ...defaultTuning(phase), ...t });
 
@@ -45,8 +43,8 @@ export async function runDailyReview(roomId: string, summary: DaySummary, opts: 
 
   // 2. AI.
   if (room.ai_mode === 'off') return;
-  if (!anthropic) {
-    await q(`insert into reviews (room_id, cycle_key, source, error) values ($1, $2, 'ai', 'ANTHROPIC_API_KEY not configured')`, [roomId, summary.cycleKey]);
+  if (!aiStatus.configured) {
+    await q(`insert into reviews (room_id, cycle_key, source, error) values ($1, $2, 'ai', $3)`, [roomId, summary.cycleKey, AI_NOT_CONFIGURED]);
     return;
   }
   const history = await q<{ summary: DaySummary }>(
@@ -58,24 +56,15 @@ export async function runDailyReview(roomId: string, summary: DaySummary, opts: 
   });
 
   try {
-    const msg = await anthropic.messages.create({
-      model: env.aiModel,
-      max_tokens: 1500,
-      system,
-      tools: [REVIEW_TOOL as any],
-      tool_choice: { type: 'tool', name: REVIEW_TOOL.name },
-      messages: [{ role: 'user', content: user }],
-    });
-    const call = msg.content.find((b: any) => b.type === 'tool_use') as any;
-    if (!call) throw new Error('Model did not call submit_review');
-    const { review, tuning: next, applied } = parseReview(call.input, phase, tuning);
+    const raw = await requestReview(system, user);
+    const { review, tuning: next, applied } = parseReview(raw, phase, tuning);
     const apply = room.ai_mode === 'apply';
     if (apply && applied.length) await q(`update rooms set tuning = $2, updated_at = now() where id = $1`, [roomId, JSON.stringify(next)]);
     await q(
       `insert into reviews (room_id, cycle_key, source, assessment, summary, changes, applied, phase_advance, alerts, model)
        values ($1, $2, 'ai', $3, $4, $5, $6, $7, $8, $9)`,
       [roomId, summary.cycleKey, review.assessment, review.summary, JSON.stringify(applied), apply && applied.length > 0,
-        JSON.stringify(review.phaseAdvance), JSON.stringify(review.alerts), env.aiModel]);
+        JSON.stringify(review.phaseAdvance), JSON.stringify(review.alerts), aiLabel]);
     await addEvent(roomId, 'ai_review', review.assessment === 'off_track' ? 'warning' : 'info', review.summary,
       { assessment: review.assessment, changes: applied, applied: apply });
     for (const a of review.alerts) await addEvent(roomId, 'ai_alert', 'warning', a);
@@ -90,8 +79,10 @@ export async function runDailyReview(roomId: string, summary: DaySummary, opts: 
       }).catch((e: any) => addEvent(roomId, 'task_error', 'warning', `Could not post the review to Growlink tasks: ${e?.message ?? e}`));
     }
   } catch (e: any) {
-    await q(`insert into reviews (room_id, cycle_key, source, error, model) values ($1, $2, 'ai', $3, $4)`, [roomId, summary.cycleKey, String(e?.message ?? e).slice(0, 500), env.aiModel]);
-    await addEvent(roomId, 'ai_error', 'warning', `AI review failed: ${e?.message ?? e}`);
+    const msg = redact(String(e?.message ?? e)).slice(0, 500);
+    console.error(`[ai] review failed for room ${roomId}: ${msg}`);
+    await q(`insert into reviews (room_id, cycle_key, source, error, model) values ($1, $2, 'ai', $3, $4)`, [roomId, summary.cycleKey, msg, aiLabel]);
+    await addEvent(roomId, 'ai_error', 'warning', `AI review failed: ${msg}`);
   }
 }
 
