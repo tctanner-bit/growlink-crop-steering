@@ -410,6 +410,12 @@ export function step(input: StepInput): StepResult {
     }
   }
 
+  // Blind = hold. No shot of any kind without a fresh water-content reading.
+  if (decision && wc == null) {
+    decision = null;
+    hint = 'Holding: no fresh water-content reading from the mapped sensors.';
+  }
+
   if (decision && s.shots.length >= t.maxShotsPerDay && decision.kind !== 'emergency') {
     alertOnce('max_shots', 'warning', `Daily shot cap (${t.maxShotsPerDay}) reached.`);
     decision = null;

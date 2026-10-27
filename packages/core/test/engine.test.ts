@@ -86,6 +86,18 @@ describe('daily-cycle engine', () => {
     expect(s.alerts).toContain('sensor_stale');
   });
 
+  it('never fires (live or shadow) when the WC reading is missing', () => {
+    for (const mode of ['live', 'shadow'] as const) {
+      let s = initialState();
+      for (const hhmm of ['06:01', '07:30', '08:00', '09:00', '10:30']) {
+        const r = step(input({ now: at(`2026-11-05T${hhmm}`), wc: null, ec: 5, state: s, mode }));
+        expect(r.actions).toHaveLength(0);
+        expect(r.events.some((e) => e.type === 'shadow_shot' || e.type === 'shot')).toBe(false);
+        s = r.state;
+      }
+    }
+  });
+
   it('fires an emergency shot below the safety floor, even at night', () => {
     const floor = emergencyFloor(3);
     const r = step(input({ now: at('2026-11-05T22:00'), wc: floor - 2 }));
