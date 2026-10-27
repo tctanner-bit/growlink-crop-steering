@@ -106,7 +106,7 @@ export async function importRooms(connectionId: string, glRoomIds: string[]): Pr
     const r = rooms.find((x) => x.id.toLowerCase() === id.toLowerCase());
     if (!r) continue;
     await q(`insert into rooms (connection_id, gl_room_id, name, config) values ($1, $2, $3, $4) on conflict (connection_id, gl_room_id) do nothing`,
-      [conn.id, r.id, r.name, JSON.stringify({ timezone: DEFAULT_ROOM_CONFIG.timezone })]);
+      [conn.id, r.id, r.name, JSON.stringify({ timezone: DEFAULT_ROOM_CONFIG.timezone, lightsSync: true })]);
     n++;
   }
   revalidatePath('/');
@@ -125,7 +125,7 @@ async function ownedRoom(roomId: string) {
 export interface RoomSetupInput {
   wcSensorIds: string[]; ecSensorIds: string[]; valveIds: string[];
   sequentialValves: boolean; restState: 'off' | 'auto';
-  timezone: string; lightsOn: string; photoperiodHours: number;
+  timezone: string; lightsOn: string; photoperiodHours: number; lightsSync: boolean;
   blockVolumeL: number; emitterFlowMlPerMin: number; emittersPerBlock: number;
   minShotSeconds: number; maxShotSeconds: number; emergencyWcFloor: number | null;
   postToTasks: boolean; growerNotes: string;
@@ -141,16 +141,20 @@ export async function saveRoomSetup(roomId: string, input: RoomSetupInput): Prom
   try { Intl.DateTimeFormat('en-US', { timeZone: input.timezone }); } catch { return fail('Unknown time zone.'); }
   if (room.mode === 'live' && input.valveIds.length === 0) return fail('A live room needs at least one valve.');
   const config = {
-    timezone: input.timezone, lightsOn: input.lightsOn, photoperiodHours: input.photoperiodHours,
+    timezone: input.timezone, lightsOn: input.lightsOn, photoperiodHours: input.photoperiodHours, lightsSync: input.lightsSync,
     blockVolumeL: input.blockVolumeL, emitterFlowMlPerMin: input.emitterFlowMlPerMin, emittersPerBlock: input.emittersPerBlock,
     minShotSeconds: input.minShotSeconds, maxShotSeconds: input.maxShotSeconds, emergencyWcFloor: input.emergencyWcFloor,
   };
   await q(`update rooms set wc_sensor_ids = $2, ec_sensor_ids = $3, valve_ids = $4, sequential_valves = $5, rest_state = $6,
-                            config = $7, post_to_tasks = $8, grower_notes = $9, updated_at = now() where id = $1`,
+                            config = config || $7::jsonb, post_to_tasks = $8, grower_notes = $9, updated_at = now() where id = $1`,
     [roomId, input.wcSensorIds, input.ecSensorIds, input.valveIds, input.sequentialValves, input.restState,
       JSON.stringify(config), input.postToTasks, input.growerNotes.trim() || null]);
+  if (input.lightsSync && room.conn_kind !== 'demo') {
+    const user = await requireUser();
+    await q(`insert into commands (room_id, created_by, type, payload) values ($1, $2, 'sync_lights', '{}')`, [roomId, user.id]);
+  }
   revalidatePath(`/rooms/${roomId}`);
-  return { ok: true, message: 'Setup saved.' };
+  return { ok: true, message: input.lightsSync && room.conn_kind !== 'demo' ? 'Setup saved. Syncing the lights schedule from Growlink…' : 'Setup saved.' };
 }
 
 export async function setMode(roomId: string, mode: Mode, confirmLive = false): Promise<ActionResult> {
@@ -231,12 +235,12 @@ export async function resetTuning(roomId: string): Promise<ActionResult> {
   return { ok: true, message: 'Tuning reset to phase defaults.' };
 }
 
-export async function sendCommand(roomId: string, type: 'test_shot' | 'all_off' | 'run_review', payload: Record<string, unknown> = {}): Promise<ActionResult> {
+export async function sendCommand(roomId: string, type: 'test_shot' | 'all_off' | 'run_review' | 'sync_lights', payload: Record<string, unknown> = {}): Promise<ActionResult> {
   const { user, room } = await ownedRoom(roomId);
   if (type === 'test_shot' && !(room.mode === 'live' || room.mode === 'simulate')) return fail('Test shots need Simulate or Live mode.');
   await q(`insert into commands (room_id, created_by, type, payload) values ($1, $2, $3, $4)`, [roomId, user.id, type, JSON.stringify(payload)]);
   revalidatePath(`/rooms/${roomId}`);
-  return { ok: true, message: type === 'all_off' ? 'All-off sent.' : type === 'test_shot' ? 'Test shot queued.' : 'Review requested.' };
+  return { ok: true, message: type === 'all_off' ? 'All-off sent.' : type === 'test_shot' ? 'Test shot queued.' : type === 'sync_lights' ? 'Reading the lights schedule from Growlink…' : 'Review requested.' };
 }
 
 export async function deleteRoom(roomId: string): Promise<ActionResult> {

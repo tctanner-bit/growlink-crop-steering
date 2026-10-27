@@ -6,6 +6,7 @@ import { addEvent, loadActiveRooms, loadRoom, q, RoomRow, ConnectionRow, RoomSta
 import { apiFor, forgetRoom, isSimulated, roomConfig } from './clients';
 import { fireShot, roomHasOpenValve, setAllValves } from './executor';
 import { roomTuning, runDailyReview, runReviewNow } from './review';
+import { syncRoomLights } from './lights';
 
 type Active = RoomRow & { conn: ConnectionRow; state: RoomStateRow | null };
 
@@ -144,6 +145,8 @@ export async function processCommands() {
         lastMode.delete(room.id);
         forgetRoom(room.id);
         await addEvent(room.id, 'mode', 'info', 'Valves handed back to Growlink automation (AUTO).');
+      } else if (c.type === 'sync_lights') {
+        result = await syncRoomLights(room, { force: true });
       } else if (c.type === 'run_review') {
         await runReviewNow(room.id);
         result = 'review complete';

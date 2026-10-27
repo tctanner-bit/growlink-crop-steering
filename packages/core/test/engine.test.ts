@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DateTime } from 'luxon';
 import {
   DEFAULT_ROOM_CONFIG, initialState, step, StepInput, defaultTuning, resolveTargets, runHarness,
-  aggregateReadings, clampTuning, applyChanges, parseReview, emergencyFloor, shotSeconds,
+  aggregateReadings, clampTuning, applyChanges, parseReview, emergencyFloor, shotSeconds, inferLightSchedule,
 } from '../src/index';
 import { seal, open } from '../src/vault';
 
@@ -192,5 +192,22 @@ describe('tuning, aggregation, AI parsing, vault', () => {
     expect(sealed.last4).toBe('ABCD');
     expect(sealed.ciphertext).not.toContain('secret');
     expect(open(sealed, k)).toBe('gl_live_secret_ABCD');
+  });
+});
+
+describe('light schedule from Growlink day/night markers', () => {
+  it('reads lights-on and photoperiod from the latest complete day, in the room time zone', () => {
+    const r = inferLightSchedule([
+      { x: '2026-10-24T12:00:00Z', y: 1 },            // window start boundary: ignored
+      { x: '2026-10-25T00:00:00Z', y: 0 },
+      { x: '2026-10-25T12:02:00Z', y: 1 }, { x: '2026-10-26T06:00:00Z', y: 0 }, // 18 h veg day
+      { x: '2026-10-26T12:00:00Z', y: 1 }, { x: '2026-10-27T00:00:00Z', y: 0 }, // flipped to 12 h
+      { x: '2026-10-27T12:00:00Z', y: 1 },            // today, still on
+    ], 'America/Denver', '2026-10-24T12:00:00Z');
+    expect(r).toMatchObject({ lightsOn: '06:00', photoperiodHours: 12, periods: 2 });
+  });
+  it('returns null without a complete day (24 h light, or no data)', () => {
+    expect(inferLightSchedule([], 'UTC')).toBeNull();
+    expect(inferLightSchedule([{ x: '2026-10-27T06:00:00Z', y: 1 }], 'UTC')).toBeNull();
   });
 });

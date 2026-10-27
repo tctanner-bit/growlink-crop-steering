@@ -3,7 +3,7 @@
 import { Button, Textfield, TextArea, Toggle, SectionMessage, Heading } from '@/components/ui';
 import { useState, useTransition } from 'react';
 import { DEVICE_TYPE_LABELS, pctPerSecond, DEFAULT_ROOM_CONFIG } from '@gl-steering/core';
-import { saveRoomSetup, RoomSetupInput, ActionResult } from '@/app/actions';
+import { saveRoomSetup, sendCommand, RoomSetupInput, ActionResult } from '@/app/actions';
 
 interface Opt { id: string; name: string; meta: string }
 
@@ -11,11 +11,14 @@ export function SetupForm(props: {
   roomId: string; mode: string; wcSensors: Opt[]; ecSensors: Opt[];
   devices: (Opt & { irrigation: boolean; deviceType: number })[];
   initial: RoomSetupInput; defaultFloor: number; isDemo: boolean;
+  lightsSyncedAt: string | null; lightsSyncNote: string | null;
 }) {
   const [v, setV] = useState<RoomSetupInput>(props.initial);
   const [showAll, setShowAll] = useState(false);
   const [msg, setMsg] = useState<ActionResult | null>(null);
   const [pending, start] = useTransition();
+  const [syncMsg, setSyncMsg] = useState<string | null>(null);
+  const synced = v.lightsSync && !props.isDemo;
   const set = <K extends keyof RoomSetupInput>(k: K, val: RoomSetupInput[K]) => setV((x) => ({ ...x, [k]: val }));
   const toggle = (k: 'wcSensorIds' | 'ecSensorIds' | 'valveIds', id: string) =>
     setV((x) => ({ ...x, [k]: x[k].includes(id) ? x[k].filter((i) => i !== id) : [...x[k], id] }));
@@ -77,9 +80,29 @@ export function SetupForm(props: {
 
       <div className="card stack gap-200">
         <Heading size="small" as="h2">Schedule and substrate</Heading>
+        {!props.isDemo && (
+          <div className="stack gap-100">
+            <div className="row gap-150 wrap">
+              <label className="row gap-100">
+                <Toggle isChecked={v.lightsSync} onChange={() => set('lightsSync', !v.lightsSync)} label="Keep lights in sync with Growlink" />
+                <span>Keep the lights schedule in sync with Growlink</span>
+              </label>
+              <span className="grow" />
+              {v.lightsSync && (
+                <Button spacing="compact" isDisabled={pending} onClick={() => start(async () => { const r = await sendCommand(props.roomId, 'sync_lights'); setSyncMsg(r.ok ? 'Syncing — refresh in a few seconds.' : r.error ?? 'Failed'); })}>Sync now</Button>
+              )}
+            </div>
+            <span className="field-help" suppressHydrationWarning>
+              {syncMsg ?? (!v.lightsSync ? 'Off: lights-on and photoperiod are set by hand below.'
+                : props.lightsSyncNote ? props.lightsSyncNote
+                : props.lightsSyncedAt ? `Read from the room's day/night schedule in Growlink · last checked ${new Date(props.lightsSyncedAt).toLocaleString()}. Checked every 30 minutes; a flip to flower is picked up after the first full 12 h day.`
+                : 'Read from the room\'s day/night schedule in Growlink within a minute of saving, then every 30 minutes.')}
+            </span>
+          </div>
+        )}
         <div className="form-grid">
-          <Field label="Lights on (local)" help="24 h, HH:MM"><Textfield value={v.lightsOn} onChange={(e) => set('lightsOn', (e.target as HTMLInputElement).value)} /></Field>
-          <Field label="Photoperiod (h)" help="12 for flower, 18 for veg"><Textfield type="number" step="0.5" value={String(v.photoperiodHours)} onChange={num('photoperiodHours')} /></Field>
+          <Field label="Lights on (local)" help={synced ? 'From Growlink' : '24 h, HH:MM'}><Textfield value={v.lightsOn} isDisabled={synced} onChange={(e) => set('lightsOn', (e.target as HTMLInputElement).value)} /></Field>
+          <Field label="Photoperiod (h)" help={synced ? 'From Growlink' : '12 for flower, 18 for veg'}><Textfield type="number" step="0.25" value={String(v.photoperiodHours)} isDisabled={synced} onChange={num('photoperiodHours')} /></Field>
           <Field label="Time zone" help="IANA name, e.g. America/Denver"><Textfield value={v.timezone} onChange={(e) => set('timezone', (e.target as HTMLInputElement).value)} /></Field>
           <Field label="Block volume (L)" help="6×6×4 in block ≈ 2.4 L"><Textfield type="number" step="0.1" value={String(v.blockVolumeL)} onChange={num('blockVolumeL')} /></Field>
           <Field label="Emitter flow (ml/min)" help="2 L/h dripper = 33 ml/min"><Textfield type="number" step="1" value={String(v.emitterFlowMlPerMin)} onChange={num('emitterFlowMlPerMin')} /></Field>

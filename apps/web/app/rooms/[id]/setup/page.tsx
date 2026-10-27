@@ -43,10 +43,11 @@ export default async function SetupPage({ params }: { params: Promise<{ id: stri
         wcSensors={wc.map((s) => ({ id: s.id, name: s.name, meta: s.moduleName ?? '' }))}
         ecSensors={ec.map((s) => ({ id: s.id, name: s.name, meta: s.moduleName ?? '' }))}
         devices={valves.map((d) => ({ id: d.id, name: d.name, meta: '', irrigation: IRRIGATION_DEVICE_TYPES.has(d.deviceType), deviceType: d.deviceType }))}
+        lightsSyncedAt={cfg.lightsSyncedAt ?? null} lightsSyncNote={cfg.lightsSyncNote ?? null}
         initial={{
           wcSensorIds: room.wc_sensor_ids, ecSensorIds: room.ec_sensor_ids, valveIds: room.valve_ids,
           sequentialValves: room.sequential_valves, restState: room.rest_state,
-          timezone: cfg.timezone, lightsOn: cfg.lightsOn, photoperiodHours: cfg.photoperiodHours,
+          timezone: cfg.timezone, lightsOn: cfg.lightsOn, photoperiodHours: cfg.photoperiodHours, lightsSync: cfg.lightsSync !== false,
           blockVolumeL: cfg.blockVolumeL, emitterFlowMlPerMin: cfg.emitterFlowMlPerMin, emittersPerBlock: cfg.emittersPerBlock,
           minShotSeconds: cfg.minShotSeconds, maxShotSeconds: cfg.maxShotSeconds, emergencyWcFloor: cfg.emergencyWcFloor,
           postToTasks: room.post_to_tasks, growerNotes: room.grower_notes ?? '',

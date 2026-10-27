@@ -26,6 +26,12 @@ export interface RoomConfig {
   maxShotSeconds: number;
   /** Absolute WC% floor that triggers an emergency shot at any time. Null = derived from targets. */
   emergencyWcFloor: number | null;
+  /** Keep lightsOn/photoperiodHours in sync with the room's Growlink day/night schedule. */
+  lightsSync: boolean;
+  /** Last successful sync (UTC ISO), or null. */
+  lightsSyncedAt: string | null;
+  /** Why the last sync could not set the schedule, or null. */
+  lightsSyncNote: string | null;
 }
 
 export const DEFAULT_ROOM_CONFIG: RoomConfig = {
@@ -37,6 +43,9 @@ export const DEFAULT_ROOM_CONFIG: RoomConfig = {
   emittersPerBlock: 2,
   minShotSeconds: 5,
   maxShotSeconds: 300,
+  lightsSync: true,
+  lightsSyncedAt: null,
+  lightsSyncNote: null,
   emergencyWcFloor: null,
 };
 

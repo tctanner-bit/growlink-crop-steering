@@ -7,3 +7,4 @@ export * from './aggregate';
 export * from './simulator';
 export * from './ai-review';
 export * from './harness';
+export * from './lights';

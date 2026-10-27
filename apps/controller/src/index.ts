@@ -5,6 +5,7 @@ import { migrate } from './migrate';
 import { processCommands, tick } from './loop';
 import { closeAllOpenRuns, watchdog } from './executor';
 import { aiStatus } from './ai';
+import { syncAllLights } from './lights';
 
 /**
  * Crop Steering Autopilot controller.
@@ -62,6 +63,8 @@ async function main() {
   every(10_000, 'heartbeat', heartbeat);
   every(3_000, 'commands', async () => { if (isLeader) await processCommands(); });
   every(env.tickMs, 'tick', async () => { if (isLeader) await tick(); });
+  every(30 * 60_000, 'lights', async () => { if (isLeader) await syncAllLights(); });
+  setTimeout(() => { if (isLeader) void syncAllLights().catch((e) => console.error('[lights]', e)); }, 20_000);
   every(6 * 3_600_000, 'retention', async () => {
     if (!isLeader) return;
     await q(`delete from readings where ts < now() - make_interval(days => $1)`, [env.readingsRetentionDays]);
