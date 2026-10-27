@@ -20,6 +20,16 @@ export function SetupForm(props: {
   const [syncMsg, setSyncMsg] = useState<string | null>(null);
   const synced = v.lightsSync && !props.isDemo;
   const set = <K extends keyof RoomSetupInput>(k: K, val: RoomSetupInput[K]) => setV((x) => ({ ...x, [k]: val }));
+  const setAll = (k: 'wcSensorIds' | 'ecSensorIds', ids: string[]) => setV((x) => ({ ...x, [k]: ids }));
+  const AllToggle = ({ list, opts }: { list: 'wcSensorIds' | 'ecSensorIds'; opts: Opt[] }) => {
+    if (opts.length < 2) return null;
+    const all = opts.every((o) => v[list].includes(o.id));
+    return (
+      <button type="button" className="gl-btn gl-btn--subtle gl-btn--compact" onClick={() => setAll(list, all ? [] : opts.map((o) => o.id))}>
+        {all ? 'Deselect all' : 'Select all'}
+      </button>
+    );
+  };
   const toggle = (k: 'wcSensorIds' | 'ecSensorIds' | 'valveIds', id: string) =>
     setV((x) => ({ ...x, [k]: x[k].includes(id) ? x[k].filter((i) => i !== id) : [...x[k], id] }));
   const num = (k: keyof RoomSetupInput) => (e: React.FormEvent<HTMLInputElement>) => set(k, Number((e.target as HTMLInputElement).value) as any);
@@ -41,14 +51,14 @@ export function SetupForm(props: {
         <Heading size="small" as="h2">Sensors</Heading>
         <div className="form-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
           <div className="stack gap-100">
-            <span className="field-label">Substrate water content (required)</span>
+            <div className="row spread gap-100"><span className="field-label">Substrate water content (required) · {v.wcSensorIds.length} of {props.wcSensors.length}</span><AllToggle list="wcSensorIds" opts={props.wcSensors} /></div>
             <div className="checklist">
               {props.wcSensors.length ? props.wcSensors.map((o) => <Check key={o.id} list="wcSensorIds" o={o} />) : <span className="small muted">No water-content sensors in this room.</span>}
             </div>
             <span className="field-help">Averaged per tick; a probe more than 8% from the median is ignored.</span>
           </div>
           <div className="stack gap-100">
-            <span className="field-label">Substrate EC (recommended)</span>
+            <div className="row spread gap-100"><span className="field-label">Substrate EC (recommended) · {v.ecSensorIds.length} of {props.ecSensors.length}</span><AllToggle list="ecSensorIds" opts={props.ecSensors} /></div>
             <div className="checklist">
               {props.ecSensors.length ? props.ecSensors.map((o) => <Check key={o.id} list="ecSensorIds" o={o} />) : <span className="small muted">No EC sensors in this room.</span>}
             </div>
