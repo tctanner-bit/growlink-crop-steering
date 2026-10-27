@@ -1,4 +1,5 @@
 **/node_modules
 **/.next
 .git
-apps/web
+apps/web/*
+!apps/web/package.json
