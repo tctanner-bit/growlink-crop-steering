@@ -4,7 +4,7 @@ import { DEFAULT_ROOM_CONFIG, IRRIGATION_DEVICE_TYPES, COMMANDABLE_INTERFACES, S
 import { requireUser } from '@/lib/auth';
 import { getConnection, getRoom } from '@/lib/data';
 import { apiForConnection } from '@/lib/growlink';
-import { Heading, SectionMessage } from '@/components/ak';
+import { Heading, SectionMessage } from '@/components/ui';
 import { SetupForm } from '@/components/SetupForm';
 import { DeleteRoomButton } from '@/components/DeleteRoomButton';
 

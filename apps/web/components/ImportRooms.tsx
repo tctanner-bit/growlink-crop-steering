@@ -1,10 +1,8 @@
 'use client';
 
+import { Button, Heading, Lozenge } from '@/components/ui';
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import Button from '@atlaskit/button/new';
-import Heading from '@atlaskit/heading';
-import Lozenge from '@atlaskit/lozenge';
 import { importRooms, ActionResult } from '@/app/actions';
 
 export function ImportRooms({ connectionId, rooms }: { connectionId: string; rooms: { id: string; name: string; type: string; imported: boolean }[] }) {

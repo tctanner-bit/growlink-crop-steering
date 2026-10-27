@@ -1,8 +1,7 @@
 'use client';
 
+import { Button, Textfield } from '@/components/ui';
 import { useState, useTransition } from 'react';
-import Button from '@atlaskit/button/new';
-import Textfield from '@atlaskit/textfield';
 import { PhaseId, Tuning, TuningKey, TUNING_LABELS, tuningBounds, defaultTuning } from '@gl-steering/core';
 import { saveTuning, resetTuning, ActionResult } from '@/app/actions';
 

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { requireUser } from '@/lib/auth';
-import { Heading } from '@/components/ak';
+import { Heading } from '@/components/ui';
 import { ConnectWizard } from '@/components/ConnectWizard';
 
 export default async function ConnectPage() {

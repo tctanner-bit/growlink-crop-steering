@@ -1,12 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
-import { setGlobalTheme } from '@atlaskit/tokens/set-global-theme';
+import { usePathname } from 'next/navigation';
 
-/** Keeps ADS tokens following the OS color mode after hydration. */
-export function Providers({ children }: { children: React.ReactNode }) {
-  useEffect(() => {
-    void setGlobalTheme({ colorMode: 'auto', light: 'light', dark: 'dark', spacing: 'spacing', typography: 'typography', shape: 'shape' } as any);
-  }, []);
-  return <>{children}</>;
+/** Wall-panel routes (/rooms/:id/panel) render full-bleed, without the app chrome. */
+export function Providers({ chrome, children }: { chrome: React.ReactNode; children: React.ReactNode }) {
+  const panel = /\/panel(\/|$)/.test(usePathname() ?? '');
+  if (panel) return <>{children}</>;
+  return <>{chrome}<main className="page">{children}</main></>;
 }

@@ -1,10 +1,7 @@
 'use client';
 
+import Modal, { Button, Textfield, SectionMessage, ModalBody, ModalFooter, ModalHeader, ModalTitle, ModalTransition } from '@/components/ui';
 import { useState, useTransition } from 'react';
-import Button from '@atlaskit/button/new';
-import Textfield from '@atlaskit/textfield';
-import Modal, { ModalBody, ModalFooter, ModalHeader, ModalTitle, ModalTransition } from '@atlaskit/modal-dialog';
-import SectionMessage from '@atlaskit/section-message';
 import { PHASES, PHASE_ORDER, PhaseId } from '@gl-steering/core';
 import { setPhase } from '@/app/actions';
 

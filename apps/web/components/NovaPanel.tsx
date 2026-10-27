@@ -1,9 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import Button from '@atlaskit/button/new';
-import Lozenge from '@atlaskit/lozenge';
-import AiSparkleIcon from '@atlaskit/icon/core/ai-sparkle';
+import { Button, Lozenge, NovaMark, Segmented } from '@/components/ui';
 import { TUNING_LABELS, TuningKey } from '@gl-steering/core';
 import { applySuggestion, sendCommand, setAiMode } from '@/app/actions';
 
@@ -13,61 +11,61 @@ export interface ReviewView {
   phase_advance: { recommend: boolean; reason: string } | null; alerts: string[]; error: string | null;
 }
 
-const ASSESS: Record<string, { label: string; appearance: 'success' | 'moved' | 'removed' }> = {
-  on_track: { label: 'On track', appearance: 'success' },
-  watch: { label: 'Watch', appearance: 'moved' },
-  off_track: { label: 'Off track', appearance: 'removed' },
+const ASSESS: Record<string, { label: string; cls: string }> = {
+  on_track: { label: 'On track', cls: 'ok-text' },
+  watch: { label: 'Watch', cls: 'warn-text' },
+  off_track: { label: 'Off track', cls: 'danger-text' },
 };
 
-/**
- * Nova — the AI agronomist. Rovo UI rules: one Rovo-appearance button in this region, and
- * the generative border only while a review is actually being generated.
- */
+const MODES = [{ id: 'off', label: 'Off' }, { id: 'suggest', label: 'Suggest' }, { id: 'apply', label: 'Auto' }] as const;
+
+/** Nova — one plain sentence, the changes behind it, one action. Accent border only while generating. */
 export function NovaPanel({ roomId, aiMode, reviews, generating, aiConfigured }: {
   roomId: string; aiMode: 'off' | 'suggest' | 'apply'; reviews: ReviewView[]; generating: boolean; aiConfigured: boolean;
 }) {
   const [pending, start] = useTransition();
   const [requested, setRequested] = useState(false);
-  const busy = generating || requested && pending;
+  const busy = generating || (requested && pending);
   const ai = reviews.filter((r) => r.source === 'ai');
   const latest = ai[0];
   const rules = reviews.filter((r) => r.source === 'rules').slice(0, 3);
 
   const body = (
-    <div className="stack gap-150">
-      <div className="row gap-100">
-        <span className="nova-mark" aria-hidden="true"><i /><i /><i /><i /></span>
-        <span style={{ font: 'var(--ds-font-heading-small)' }} className="grow">Nova review</span>
-        <div className="segmented" role="group" aria-label="AI mode">
-          {(['off', 'suggest', 'apply'] as const).map((m) => (
-            <button key={m} type="button" aria-pressed={aiMode === m} onClick={() => start(async () => { await setAiMode(roomId, m); })}>
-              {m === 'off' ? 'Off' : m === 'suggest' ? 'Suggest' : 'Auto'}
-            </button>
-          ))}
-        </div>
+    <div className="stack gap-200">
+      <div className="nova-head">
+        <NovaMark />
+        <span className="eyebrow grow">Nova{latest?.cycle_key ? ` · cycle ${latest.cycle_key}` : ''}</span>
+        {latest && !latest.error && !busy && (
+          <span className={`small ${ASSESS[latest.assessment ?? 'watch']?.cls ?? ''}`}>{ASSESS[latest.assessment ?? 'watch']?.label}</span>
+        )}
       </div>
 
       {busy ? (
-        <div className="subtle">Reviewing the last cycle against the phase targets…</div>
+        <p className="nova-summary subtle">Reviewing the last cycle against the phase targets…</p>
       ) : latest ? (
         <ReviewBody r={latest} roomId={roomId} />
       ) : (
-        <div className="subtle small">
-          Nova reviews each cycle once its overnight dry-back is measured (at the next morning&apos;s first shot), then tunes tomorrow&apos;s irrigation within hard limits.
-        </div>
+        <p className="nova-summary subtle">Nova reviews each cycle once last night&apos;s dry-back is measured, then tunes tomorrow within hard limits.</p>
       )}
 
-      <div className="row gap-100">
-        <Button appearance="rovo" iconBefore={AiSparkleIcon} isDisabled={aiMode === 'off' || !aiConfigured || busy}
+      <div className="row gap-150 wrap">
+        <Segmented label="Nova mode" value={aiMode} options={MODES as any} onChange={(m) => start(async () => { await setAiMode(roomId, m as any); })} />
+        <span className="grow" />
+        <Button appearance="subtle" isDisabled={aiMode === 'off' || !aiConfigured || busy}
           onClick={() => { setRequested(true); start(async () => { await sendCommand(roomId, 'run_review'); }); }}>
-          Review last cycle
+          Review now
         </Button>
-        {!aiConfigured && <span className="small muted">Nova needs an AI key on the controller (OPENAI_API_KEY as a Fly secret).</span>}
+      </div>
+      <div className="small muted">
+        {!aiConfigured ? 'Nova needs an AI key on the controller (OPENAI_API_KEY as a Fly secret).'
+          : aiMode === 'apply' ? 'Auto: Nova applies its changes each morning, within hard limits.'
+          : aiMode === 'suggest' ? 'Suggest: nothing changes until you apply it.'
+          : 'Off: only the nightly rules adjust this room.'}
       </div>
 
       {rules.length > 0 && (
         <div className="stack gap-075">
-          <span className="eyebrow">Rule engine</span>
+          <span className="eyebrow">Nightly rules</span>
           {rules.map((r) => (
             <div key={r.id} className="small subtle">{r.cycle_key}: {r.changes.map((c) => `${TUNING_LABELS[c.key]} ${c.from} → ${c.to}`).join('; ')}</div>
           ))}
@@ -86,38 +84,45 @@ export function NovaPanel({ roomId, aiMode, reviews, generating, aiConfigured }:
   return busy ? (
     <div className="gen-border" aria-busy="true"><div className="gen-inner">{body}</div></div>
   ) : (
-    <div className="nova-panel">{body}</div>
+    <section className="nova-panel" aria-label="Nova review">{body}</section>
   );
 }
 
 function ReviewBody({ r, roomId, compact }: { r: ReviewView; roomId: string; compact?: boolean }) {
   const [pending, start] = useTransition();
-  if (r.error) return <div className="small" style={{ color: 'var(--ds-text-warning)' }}>{r.cycle_key}: review failed — {r.error}</div>;
-  const a = ASSESS[r.assessment ?? 'watch'] ?? ASSESS.watch;
+  const [open, setOpen] = useState(false);
+  if (r.error) return <p className="small warn-text">{r.cycle_key}: review failed — {r.error}</p>;
+  if (compact) {
+    const a = ASSESS[r.assessment ?? 'watch'] ?? ASSESS.watch;
+    return <div className="stack gap-050"><span className={`small ${a.cls}`}>{r.cycle_key} · {a.label}</span><p className="small subtle">{r.summary}</p></div>;
+  }
   return (
-    <div className="stack gap-100">
-      <div className="row gap-100 small">
-        <Lozenge appearance={a.appearance}>{a.label}</Lozenge>
-        <span className="muted">Cycle {r.cycle_key}</span>
-      </div>
-      <p style={{ margin: 0 }}>{r.summary}</p>
-      {!compact && r.changes.length > 0 && (
-        <div className="stack gap-050">
-          {r.changes.map((c, i) => (
-            <div key={i} className="change">
-              <b>{TUNING_LABELS[c.key]}</b> <span className="num">{c.from} → {c.to}</span>
-              <div className="muted">{c.reason}</div>
-            </div>
-          ))}
-          <div className="row gap-100">
+    <div className="stack gap-200">
+      <p className="nova-summary">{r.summary}</p>
+      {r.phase_advance?.recommend && <p className="small accent-text">Phase change suggested: {r.phase_advance.reason}</p>}
+      {r.alerts.map((al, i) => <p key={i} className="small warn-text">Check: {al}</p>)}
+      {r.changes.length > 0 && (
+        <>
+          <div className="row gap-100 wrap">
             {r.applied ? <Lozenge appearance="success">Applied</Lozenge> : (
-              <Button spacing="compact" isLoading={pending} onClick={() => start(async () => { await applySuggestion(roomId, r.id); })}>Apply suggestion</Button>
+              <Button appearance="primary" isLoading={pending} onClick={() => start(async () => { await applySuggestion(roomId, r.id); })}>
+                Apply {r.changes.length === 1 ? 'change' : `${r.changes.length} changes`}
+              </Button>
             )}
+            <Button appearance="default" onClick={() => setOpen((o) => !o)}>{open ? 'Hide reasoning' : 'See reasoning'}</Button>
           </div>
-        </div>
+          {open && (
+            <div className="stack gap-075">
+              {r.changes.map((c, i) => (
+                <div key={i} className="change">
+                  <span><b>{TUNING_LABELS[c.key]}</b> <span className="num subtle">{c.from} → {c.to}</span></span>
+                  <span className="muted">{c.reason}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
-      {!compact && r.phase_advance?.recommend && <div className="small" style={{ color: 'var(--ds-text-discovery)' }}>Phase change suggested: {r.phase_advance.reason}</div>}
-      {!compact && r.alerts.map((al, i) => <div key={i} className="small" style={{ color: 'var(--ds-text-warning)' }}>⚠ {al}</div>)}
     </div>
   );
 }

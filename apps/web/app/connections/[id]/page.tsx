@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { requireUser } from '@/lib/auth';
 import { getConnection, listRooms } from '@/lib/data';
 import { apiForConnection } from '@/lib/growlink';
-import { Heading, SectionMessage, Lozenge } from '@/components/ak';
+import { Heading, SectionMessage, Lozenge } from '@/components/ui';
 import { ImportRooms } from '@/components/ImportRooms';
 import { DeleteConnectionButton } from '@/components/DeleteRoomButton';
 

@@ -1,9 +1,7 @@
 'use client';
 
+import { Button, Textfield, SectionMessage } from '@/components/ui';
 import { useState, useTransition } from 'react';
-import Button from '@atlaskit/button/new';
-import Textfield from '@atlaskit/textfield';
-import SectionMessage from '@atlaskit/section-message';
 import { checkApiKey, createConnection } from '@/app/actions';
 
 export function ConnectWizard() {

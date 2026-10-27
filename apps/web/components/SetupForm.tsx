@@ -1,12 +1,7 @@
 'use client';
 
+import { Button, Textfield, TextArea, Toggle, SectionMessage, Heading } from '@/components/ui';
 import { useState, useTransition } from 'react';
-import Button from '@atlaskit/button/new';
-import Textfield from '@atlaskit/textfield';
-import TextArea from '@atlaskit/textarea';
-import Toggle from '@atlaskit/toggle';
-import SectionMessage from '@atlaskit/section-message';
-import Heading from '@atlaskit/heading';
 import { DEVICE_TYPE_LABELS, pctPerSecond, DEFAULT_ROOM_CONFIG } from '@gl-steering/core';
 import { saveRoomSetup, RoomSetupInput, ActionResult } from '@/app/actions';
 

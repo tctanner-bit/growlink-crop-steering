@@ -1,7 +1,7 @@
 'use client';
 
+import { Button } from '@/components/ui';
 import { useState, useTransition } from 'react';
-import Button from '@atlaskit/button/new';
 import { deleteRoom, deleteConnection } from '@/app/actions';
 
 export function DeleteRoomButton({ roomId }: { roomId: string }) {

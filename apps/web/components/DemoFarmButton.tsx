@@ -1,7 +1,7 @@
 'use client';
 
+import { Button } from '@/components/ui';
 import { useTransition } from 'react';
-import Button from '@atlaskit/button/new';
 import { createDemoFarm } from '@/app/actions';
 
 export function DemoFarmButton({ subtle }: { subtle?: boolean }) {

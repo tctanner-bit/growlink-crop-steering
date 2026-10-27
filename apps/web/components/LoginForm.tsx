@@ -1,11 +1,9 @@
 'use client';
 
+import { Button, Textfield, SectionMessage } from '@/components/ui';
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
-import Button from '@atlaskit/button/new';
-import Textfield from '@atlaskit/textfield';
-import SectionMessage from '@atlaskit/section-message';
 
 export function LoginForm() {
   const [email, setEmail] = useState('');

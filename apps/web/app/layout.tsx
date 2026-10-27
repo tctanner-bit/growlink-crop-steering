@@ -1,11 +1,8 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import Link from 'next/link';
-import getThemeHtmlAttrs from '@atlaskit/tokens/get-theme-html-attrs';
-import getThemeStyles from '@atlaskit/tokens/get-theme-styles';
-import getSSRAutoScript from '@atlaskit/tokens/get-ssr-auto-script';
-import '@atlaskit/css-reset';
 import './globals.css';
 import { Providers } from '@/components/Providers';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { currentUser } from '@/lib/auth';
 import { controllerHealth } from '@/lib/data';
 import { ControllerBadge } from '@/components/ControllerBadge';
@@ -15,58 +12,55 @@ export const metadata: Metadata = {
   description: 'Growlink rock wool crop steering with AI.',
   icons: { icon: '/icon.svg' },
 };
+export const viewport: Viewport = {
+  themeColor: [{ media: '(prefers-color-scheme: dark)', color: '#08090a' }, { media: '(prefers-color-scheme: light)', color: '#f3f3f1' }],
+};
 
 export const dynamic = 'force-dynamic';
 
-const THEME = { colorMode: 'auto', light: 'light', dark: 'dark', spacing: 'spacing', typography: 'typography', shape: 'shape' } as const;
+// Applies the saved theme before first paint (no flash). ?theme=light|dark wins, for wall panels.
+const THEME_INIT = `(function(){try{var q=new URLSearchParams(location.search).get('theme');var t=q||localStorage.getItem('gl-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`;
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const [themeStyles, user] = await Promise.all([getThemeStyles(THEME as any), currentUser()]);
+  const user = await currentUser();
   const health = user ? await controllerHealth().catch(() => null) : null;
-  const attrs = getThemeHtmlAttrs(THEME as any);
-  const ssrAuto = getSSRAutoScript('auto');
+  const chrome = (
+    <>
+      <div className="labs-strip" role="note">
+        <strong>Growlink Labs experiment</strong> · Use caution before giving it control of real valves · <span className="labs-stage">Labs → Beta → General release</span>
+      </div>
+      <header className="topbar">
+        <div className="topbar-inner">
+          <Link href="/" className="brand" aria-label="Growlink Labs — Rock Wool Crop Steering, home">
+            <span className="brand-logo" aria-hidden="true" />
+            <span className="labs-tag">LABS</span>
+            <span className="brand-app">Rock Wool Crop Steering</span>
+          </Link>
+          {user && (
+            <nav className="topnav" aria-label="Main">
+              <Link href="/">Rooms</Link>
+              <Link href="/connect">Add connection</Link>
+            </nav>
+          )}
+          <div className="topbar-right">
+            {user && <ControllerBadge health={health} />}
+            <ThemeToggle />
+            {user && <span className="user-chip" title={user.email ?? ''} aria-label={`Signed in as ${user.email}`}>{(user.email ?? '?').slice(0, 1).toUpperCase()}</span>}
+          </div>
+        </div>
+      </header>
+    </>
+  );
   return (
-    <html lang="en" {...attrs} suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
-        {ssrAuto && <script dangerouslySetInnerHTML={{ __html: ssrAuto }} />}
-        {themeStyles.map((t: { id: string; attrs: Record<string, string>; css: string }) => (
-          <style key={t.id} {...t.attrs} dangerouslySetInnerHTML={{ __html: t.css }} />
-        ))}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" />
       </head>
       <body>
-        <Providers>
-          <header className="topbar">
-            <div className="topbar-inner">
-              <Link href="/" className="brand">
-                <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M12 21c-4.5-2.5-7-6-7-10.5C5 7 8 4 12 3c4 1 7 4 7 7.5C19 15 16.5 18.5 12 21z" fill="var(--ds-icon-success)" />
-                  <path d="M12 20V8" stroke="var(--ds-surface)" strokeWidth="1.6" strokeLinecap="round" />
-                </svg>
-                <span className="brand-name">Crop Steering</span>
-                <span className="brand-sub">Growlink</span>
-                <span className="labs-tag">Labs</span>
-              </Link>
-              {user && (
-                <nav className="topnav">
-                  <Link href="/">Rooms</Link>
-                  <Link href="/connect">Add connection</Link>
-                </nav>
-              )}
-              <div className="topbar-right">
-                {user && <ControllerBadge health={health} />}
-                {user && <span className="user-email">{user.email}</span>}
-              </div>
-            </div>
-            <div className="labs-banner" role="note">
-              <div className="labs-banner-inner">
-                <strong>Growlink Labs experiment.</strong>{' '}
-                This app is experimental and not yet supported. Use caution before giving it control of real valves.{' '}
-                <span className="labs-stage">Labs → Beta → General release</span>
-              </div>
-            </div>
-          </header>
-          <main className="page">{children}</main>
-        </Providers>
+        <Providers chrome={chrome}>{children}</Providers>
       </body>
     </html>
   );

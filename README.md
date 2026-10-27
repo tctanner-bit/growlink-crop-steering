@@ -12,7 +12,7 @@ Every night **Nova**, the AI agronomist, reviews the closed cycle against the ph
 ```
 ┌────────────────────┐   server actions    ┌──────────────┐   30 s tick, batched   ┌────────────────────┐
 │ apps/web (Next.js, │ ──────────────────▶ │   Postgres   │ ◀───────────────────── │ apps/controller    │
-│ Atlassian DS/Rovo) │ ◀── reads state ─── │  (Supabase)  │ ── commands, config ─▶ │ leader + standby   │
+│ Growlink Labs UI)  │ ◀── reads state ─── │  (Supabase)  │ ── commands, config ─▶ │ leader + standby   │
 └────────────────────┘                     └──────────────┘                        └─────────┬──────────┘
                                                                                             │ Gl-Api-Key (decrypted in memory)
                                packages/core: phase profiles · steering engine ·            ▼
@@ -94,17 +94,22 @@ Supabase project `crop-steering` (Growlink org, us-east-1) is created with the s
 ```
 packages/core       Phase profiles, steering engine, rule tuning, simulator, AI review prompt/parse, Growlink client, vault
 apps/controller     Control loop, valve executor + watchdog, nightly review (Anthropic SDK), migrations
-apps/web            Next.js 16 app on Atlassian Design System (Atlaskit) with Rovo UI for AI surfaces
+apps/web            Next.js 16 app — Growlink Labs UI, dark and light themes, displayLINK panel route
 db/migrations       Postgres schema (+ Supabase RLS policies)
 docs/               Steering logic and Growlink API notes
 ```
 
-## Design system
+## Design
 
-The UI uses the Atlassian Design System — Atlaskit components and `@atlaskit/tokens` throughout, light and dark.
-Rovo UI is applied only to AI surfaces, per its guidelines: one `appearance="rovo"` button per region ("Review last
-cycle"), Rovo's four flat colors (blue, purple, saffron, lime — clockwise, hard stops) as the generative border
-**only while a review is generating**, and never as decoration. The Rovo logo is not used; the AI is Growlink's Nova.
+Growlink Labs look, built to read like a car display: one big number per screen (the water-content dial), black
+and white grounds, Growlink orange (#F46E1A) only for the live value, the target band and Nova, green/amber for
+on/off target, red only for **All valves off**. Dark and light themes (system by default; toggle in the top bar).
+
+- `apps/web/app/globals.css` — theme tokens (`--gl-*`) for both themes, plus the component styles.
+- `apps/web/components/ui.tsx` — the small UI kit (buttons, pills, notices, inputs, toggle, modal, segmented control).
+- `apps/web/components/RoomVisuals.tsx` — the dial and the light-cycle bar.
+- `/rooms/<id>/panel` — the displayLINK wall view: one room, readable across a hallway, Pause and All valves off as
+  large touch targets. Add `?theme=dark` or `?theme=light` to pin the theme on a panel.
 
 ## Roadmap — v2: timed device commands
 

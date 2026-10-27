@@ -125,7 +125,7 @@ export function SteeringChart(p: Props) {
         aria-label={`Water content and substrate EC, last ${p.hours} hours`} style={{ display: 'block', touchAction: 'none' }}>
         {/* Night shading spans both panels */}
         {nights.map(([a, b], i) => (
-          <rect key={i} x={x(a)} y={top1} width={Math.max(0, x(b) - x(a))} height={top2 + H_EC - top1} fill="var(--ds-background-neutral)" opacity={0.55} />
+          <rect key={i} x={x(a)} y={top1} width={Math.max(0, x(b) - x(a))} height={top2 + H_EC - top1} fill="var(--gl-night)" />
         ))}
 
         {/* WC panel */}
@@ -141,12 +141,12 @@ export function SteeringChart(p: Props) {
             <text x={x(deadlineMs)} y={top1 + H_WC - 6} dx={-4} textAnchor="end" style={{ font: 'var(--ds-font-body-small)' }} fill="var(--ds-text-subtlest)">last shot</text>
           </g>
         )}
-        <path d={path('wc', yWc)} fill="none" stroke="var(--ds-chart-blue-bolder)" strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+        <path d={path('wc', yWc)} fill="none" stroke="var(--ds-chart-blue-bolder)" strokeWidth={2.25} strokeLinejoin="round" strokeLinecap="round" />
         {p.shots.map((s, i) => {
           const sx = x(Date.parse(s.ts));
           if (sx < M.l || sx > w - M.r) return null;
           return <rect key={i} x={sx - 1.5} y={top1 + H_WC - 10} width={3} height={10} rx={1}
-            fill={s.shadow ? 'none' : 'var(--ds-chart-gray-bolder)'} stroke={s.shadow ? 'var(--ds-chart-gray-bolder)' : 'none'} />;
+            fill={s.shadow ? 'none' : 'var(--gl-accent)'} stroke={s.shadow ? 'var(--gl-accent)' : 'none'} />;
         })}
 
         {/* EC panel */}
@@ -182,10 +182,10 @@ export function SteeringChart(p: Props) {
         </div>
       )}
       <div className="legend" style={{ marginTop: 8 }}>
-        <span><span className="legend-swatch" style={{ background: 'var(--ds-background-accent-green-subtlest)', border: '1px solid var(--ds-border)' }} />Target band (per day)</span>
-        <span><span className="legend-swatch" style={{ background: 'var(--ds-background-neutral)' }} />Lights off</span>
-        <span><span className="legend-swatch" style={{ background: 'var(--ds-chart-gray-bolder)', width: 3 }} />Shot</span>
-        {p.shots.some((s) => s.shadow) && <span><span className="legend-swatch" style={{ border: '1px solid var(--ds-chart-gray-bolder)', width: 3 }} />Shadow decision</span>}
+        <span><span className="legend-swatch" style={{ background: 'var(--gl-band)', border: '1px solid var(--gl-band-edge)' }} />Target band (per day)</span>
+        <span><span className="legend-swatch" style={{ background: 'var(--gl-night)', border: '1px solid var(--gl-border)' }} />Lights off</span>
+        <span><span className="legend-swatch" style={{ background: 'var(--gl-accent)', width: 3 }} />Shot</span>
+        {p.shots.some((s) => s.shadow) && <span><span className="legend-swatch" style={{ border: '1px solid var(--gl-accent)', width: 3 }} />Shadow decision</span>}
       </div>
     </div>
   );
@@ -198,7 +198,7 @@ function Grid({ dom, y, left, right, unit }: { dom: { min: number; max: number; 
     <g>
       {lines.map((v) => (
         <g key={v}>
-          <line x1={left} x2={right} y1={y(v)} y2={y(v)} stroke="var(--ds-border)" strokeWidth={1} />
+          <line x1={left} x2={right} y1={y(v)} y2={y(v)} stroke="var(--gl-border)" strokeWidth={1} />
           <text x={left - 6} y={y(v) + 4} textAnchor="end" style={{ font: 'var(--ds-font-body-small)' }} fill="var(--ds-text-subtlest)">{v}{unit}</text>
         </g>
       ))}

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { PHASES, resolveTargets, dayInPhase, cycleInfo, DEFAULT_ROOM_CONFIG } from '@gl-steering/core';
 import { requireUser } from '@/lib/auth';
 import { listConnections, listRooms, Room } from '@/lib/data';
-import { Heading, Lozenge, LinkButton, SectionMessage } from '@/components/ak';
+import { Heading, Lozenge, LinkButton, SectionMessage } from '@/components/ui';
 import { BandBar } from '@/components/BandBar';
 import { DemoFarmButton } from '@/components/DemoFarmButton';
 import { AutoRefresh } from '@/components/AutoRefresh';
@@ -14,47 +14,46 @@ export default async function RoomsPage() {
 
   if (!connections.length) {
     return (
-      <div className="stack gap-300" style={{ maxWidth: 720 }}>
-        <Heading size="xlarge">Rock Wool Crop Steering</Heading>
-        <p className="subtle" style={{ font: 'var(--ds-font-body-large)' }}>
-          Growlink's rock wool crop steering program — P1 ramp, P2 maintenance and overnight dry-back — run against your
-          Growlink sensors and valves, tuned every night by Nova.
-        </p>
-        <div className="row gap-150 wrap">
-          <LinkButton appearance="primary" href="/connect">Connect Growlink</LinkButton>
-          <DemoFarmButton />
+      <div className="stack gap-500">
+        <div className="hero-intro">
+          <span className="eyebrow">Growlink Labs · Rock Wool Crop Steering</span>
+          <h1>Your rock wool program, steered every 30 seconds.</h1>
+          <p>P1 ramp, P2 maintenance and overnight dry-back, run against your Growlink sensors and valves, and retuned every night by Nova.</p>
+          <div className="row gap-150 wrap">
+            <LinkButton appearance="primary" href="/connect">Connect Growlink</LinkButton>
+            <DemoFarmButton />
+          </div>
         </div>
-        <SectionMessage appearance="information" title="How it works">
-          <ol style={{ margin: 0, paddingLeft: 20 }}>
-            <li>Paste your Growlink API key (Builder → Authentication). It is encrypted at rest and never sent back to the browser.</li>
-            <li>Import rooms and map substrate WC/EC sensors and irrigation valves.</li>
-            <li>Start in <b>Shadow</b> — the autopilot decides but your existing program irrigates. Go <b>Live</b> when the decisions look right.</li>
-          </ol>
-        </SectionMessage>
+        <div className="steps">
+          <div className="step"><span className="step-n">01</span><b>Connect</b><span className="small subtle">Paste your Growlink API key (Builder → Authentication). It is encrypted at rest and never sent back to the browser.</span></div>
+          <div className="step"><span className="step-n">02</span><b>Map the room</b><span className="small subtle">Import rooms, then pick substrate WC/EC sensors and irrigation valves.</span></div>
+          <div className="step"><span className="step-n">03</span><b>Shadow, then Live</b><span className="small subtle">Shadow decides while your program irrigates. Go Live when the decisions look right.</span></div>
+        </div>
       </div>
     );
   }
 
   const byConn = connections.map((c) => ({ c, rooms: rooms.filter((r) => r.connection_id === c.id) }));
   return (
-    <div className="stack gap-400">
+    <div className="stack gap-500">
       <AutoRefresh seconds={20} />
-      <div className="row spread gap-200 wrap">
+      <div className="row gap-200 wrap">
         <Heading size="xlarge">Rooms</Heading>
-        <div className="row gap-100">
+        <span className="grow" />
+        <div className="row gap-100 wrap">
           {!connections.some((c) => c.kind === 'demo') && <DemoFarmButton subtle />}
           <LinkButton href="/connect">Add connection</LinkButton>
         </div>
       </div>
       {byConn.map(({ c, rooms }) => (
-        <section key={c.id} className="stack gap-200">
+        <section key={c.id} className="stack gap-200" aria-label={c.label}>
           <div className="row gap-150 wrap">
             <Heading size="small" as="h2">{c.label}</Heading>
-            <span className="muted small">{c.org_name}{c.key_last4 ? ` · key ••••${c.key_last4}` : ''}</span>
+            <span className="small muted">{c.org_name}{c.key_last4 ? ` · key ••••${c.key_last4}` : ''}</span>
             {c.kind === 'demo' && <Lozenge appearance="new">Simulated</Lozenge>}
             {c.status === 'error' && <Lozenge appearance="removed">API error</Lozenge>}
             <span className="grow" />
-            <Link href={`/connections/${c.id}`} className="small">Manage rooms</Link>
+            <Link href={`/connections/${c.id}`} className="small subtle">Manage rooms</Link>
           </div>
           {c.status === 'error' && c.last_error && <SectionMessage appearance="error">{c.last_error}</SectionMessage>}
           {rooms.length === 0 ? (
@@ -75,51 +74,45 @@ function RoomCard({ room }: { room: Room }) {
   const targets = resolveTargets(room.phase, dip);
   const s = room.status;
   const configured = room.wc_sensor_ids.length > 0;
+  const on = room.mode !== 'off' && !!s;
   return (
-    <Link href={`/rooms/${room.id}`} className="card card-link">
-      <div className="stack gap-150">
-        <div className="row gap-100">
-          <span style={{ font: 'var(--ds-font-heading-small)' }} className="grow">{room.name}</span>
-          {room.paused && <Lozenge appearance="moved">Paused</Lozenge>}
-          <Lozenge appearance={MODE_APPEARANCE[room.mode]} isBold={room.mode === 'live'}>{MODE_LABEL[room.mode]}</Lozenge>
-        </div>
-        <div className="subtle small">
-          Phase {room.phase} · {PHASES[room.phase].name} · day {dip}
-          {room.mode !== 'off' && s ? ` · ${PERIOD_LABEL[s.period] ?? s.period}` : ''}
-        </div>
-        {!configured ? (
-          <div className="muted small">Not set up — map sensors and valves to start.</div>
-        ) : room.mode === 'off' || !s ? (
-          <div className="muted small">Autopilot off.</div>
-        ) : (
-          <>
-            <div className="row gap-300">
-              <div className="stack">
-                <span className="eyebrow">Water content</span>
-                <span><span className="metric">{fmt(s.wc)}</span><span className="metric-unit">%</span></span>
-              </div>
-              <div className="stack">
-                <span className="eyebrow">Substrate EC</span>
-                <span><span className="metric">{fmt(s.ec)}</span><span className="metric-unit">mS/cm</span></span>
-              </div>
-              <div className="stack">
-                <span className="eyebrow">Shots today</span>
-                <span className="metric">{s.shotsToday}</span>
-              </div>
-            </div>
-            <div>
-              <div className="row spread small subtle"><span>Day-level WC target {targets.dayWc.min}–{targets.dayWc.max}%</span>{s.valveOpen && <Lozenge appearance="inprogress">Irrigating</Lozenge>}</div>
-              <BandBar value={s.wc} band={targets.dayWc} scale={{ min: 30, max: 90 }} />
-            </div>
-            <div className="small subtle">{s.nextShotHint}</div>
-            {(room.last_error || !s.readingsFresh) && (
-              <div className="small" style={{ color: 'var(--ds-text-warning)' }}>
-                {room.last_error ?? 'Sensor data is stale.'} · last tick {ago(room.last_tick_at)}
-              </div>
-            )}
-          </>
-        )}
+    <Link href={`/rooms/${room.id}`} className="room-card" aria-label={`${room.name}, ${MODE_LABEL[room.mode]}`}>
+      <div className="row gap-100">
+        <span className="gl-h3 grow">{room.name}</span>
+        {room.paused && <Lozenge appearance="moved">Paused</Lozenge>}
+        {s?.valveOpen && <Lozenge appearance="new">Irrigating</Lozenge>}
+        <Lozenge appearance={MODE_APPEARANCE[room.mode]} isBold={room.mode === 'live'}>{MODE_LABEL[room.mode]}</Lozenge>
       </div>
+      <span className="small muted">Phase {room.phase} · {PHASES[room.phase].shortName} · day {dip}{on ? ` · ${PERIOD_LABEL[s!.period] ?? s!.period}` : ''}</span>
+      {!configured ? (
+        <span className="subtle small">Not set up — map sensors and valves to start.</span>
+      ) : !on ? (
+        <span className="subtle small">Autopilot off.</span>
+      ) : (
+        <>
+          <div className="row gap-300" style={{ alignItems: 'flex-end' }}>
+            <div className="stack gap-050">
+              <span className="eyebrow">Water content</span>
+              <span className="room-card-big">{fmt(s!.wc)}<small>%</small></span>
+            </div>
+            <div className="stack gap-050">
+              <span className="eyebrow">EC</span>
+              <span className="stat-value" style={{ fontSize: 32 }}>{fmt(s!.ec)}</span>
+            </div>
+            <div className="stack gap-050">
+              <span className="eyebrow">Shots</span>
+              <span className="stat-value" style={{ fontSize: 32 }}>{s!.shotsToday}</span>
+            </div>
+          </div>
+          <div>
+            <BandBar value={s!.wc} band={targets.dayWc} scale={{ min: 30, max: 90 }} />
+            <div className="row spread small muted" style={{ marginTop: 10 }}><span>Target {targets.dayWc.min}–{targets.dayWc.max}%</span><span>{s!.nextShotHint}</span></div>
+          </div>
+          {(room.last_error || !s!.readingsFresh) && (
+            <span className="small warn-text">{room.last_error ?? 'Sensor data is stale.'} · last tick {ago(room.last_tick_at)}</span>
+          )}
+        </>
+      )}
     </Link>
   );
 }

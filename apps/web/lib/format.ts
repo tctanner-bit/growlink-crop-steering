@@ -1,7 +1,7 @@
 import { PHASES, PhaseId, Range } from '@gl-steering/core';
 
 export const MODE_LABEL = { off: 'Off', shadow: 'Shadow', simulate: 'Simulate', live: 'Live' } as const;
-export const MODE_APPEARANCE = { off: 'default', shadow: 'moved', simulate: 'new', live: 'success' } as const;
+export const MODE_APPEARANCE = { off: 'default', shadow: 'moved', simulate: 'inprogress', live: 'success' } as const;
 export const PERIOD_LABEL: Record<string, string> = { night: 'Night', P1: 'P1 · ramp', P2: 'P2 · maintain', P3: 'P3 · dry-back' };
 
 export const phaseLabel = (p: PhaseId) => `Phase ${p} · ${PHASES[p].shortName}`;
