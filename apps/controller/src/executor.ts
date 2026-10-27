@@ -2,7 +2,7 @@ import type { GrowlinkApi, ShotKind } from '@gl-steering/core';
 import { idKey } from '@gl-steering/core';
 import { addEvent, loadRoom, q, RoomRow, ConnectionRow, RoomStateRow } from './db';
 import { env } from './env';
-import { apiFor } from './clients';
+import { apiFor, isSimulated } from './clients';
 
 /**
  * Valve executor. Every opening is written to valve_runs *before* the ON command, so a crash
@@ -18,6 +18,11 @@ const CONFIRM_DELAY_MS = Number(process.env.CLOSE_CONFIRM_DELAY_MS ?? 3000);
 export async function fireShot(room: RoomRow, conn: ConnectionRow, state: RoomStateRow | null, kind: ShotKind, seconds: number) {
   const secs = Math.min(env.hardMaxShotSeconds, Math.max(1, Math.round(seconds)));
   const { api, orgId } = apiFor(room, conn, state);
+  if (!env.liveEnabled && !isSimulated(room, conn)) {
+    // Backstop: never send ON to a real valve while Live is locked, whatever the room's mode says.
+    await addEvent(room.id, 'valve_error', 'warning', `Shot blocked: Live control is disabled until valves accept a timed ON command.`, { kind, seconds: secs });
+    return;
+  }
   if (!room.valve_ids.length) {
     await addEvent(room.id, 'valve_error', 'warning', 'Shot skipped: no valves are mapped to this room.');
     return;

@@ -12,7 +12,7 @@ const MODES: { id: Mode; label: string; help: string }[] = [
   { id: 'live', label: 'Live', help: 'Autopilot controls the mapped valves.' },
 ];
 
-export function RoomControls(props: { roomId: string; mode: Mode; paused: boolean; isDemo: boolean; valveCount: number; maxShotSeconds: number }) {
+export function RoomControls(props: { roomId: string; mode: Mode; paused: boolean; isDemo: boolean; valveCount: number; maxShotSeconds: number; liveEnabled: boolean }) {
   const [pending, start] = useTransition();
   const [msg, setMsg] = useState<ActionResult | null>(null);
   const [confirmLive, setConfirmLive] = useState(false);
@@ -35,10 +35,14 @@ export function RoomControls(props: { roomId: string; mode: Mode; paused: boolea
       <span className="eyebrow">Control</span>
       <div className="gl-seg gl-seg--fill" role="group" aria-label="Autopilot mode">
         {modes.map((m) => (
-          <button key={m.id} type="button" aria-pressed={props.mode === m.id} disabled={pending} onClick={() => choose(m.id)}>{m.label}</button>
+          <button key={m.id} type="button" aria-pressed={props.mode === m.id} disabled={pending || (m.id === 'live' && !props.liveEnabled)}
+            title={m.id === 'live' && !props.liveEnabled ? 'Live is disabled until valves accept a timed ON command' : undefined} onClick={() => choose(m.id)}>{m.label}</button>
         ))}
       </div>
       <p className="small muted">{current.help}{props.paused ? ' Paused — no shots will fire.' : ''}</p>
+      {!props.liveEnabled && !props.isDemo && (
+        <p className="small subtle"><b>Live is disabled</b> until valves accept a timed ON command, so a valve closes itself even if the cloud is unreachable. Shadow logs every decision in the meantime.</p>
+      )}
 
       <div className="control-row">
         <Button isDisabled={pending || props.mode === 'off'} onClick={() => run(() => setPaused(props.roomId, !props.paused))}>

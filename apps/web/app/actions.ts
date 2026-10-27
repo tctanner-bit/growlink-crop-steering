@@ -162,6 +162,7 @@ export async function setMode(roomId: string, mode: Mode, confirmLive = false): 
   if (mode === room.mode) return { ok: true };
   if (mode !== 'off' && room.wc_sensor_ids.length === 0) return fail('Map at least one water-content sensor first.');
   if ((mode === 'live' || mode === 'simulate') && room.valve_ids.length === 0) return fail('Map at least one valve first.');
+  if (mode === 'live' && process.env.LIVE_ENABLED !== '1') return fail('Live is disabled until valves accept a timed ON command. Use Shadow to see every decision without moving valves.');
   if (mode === 'live') {
     if (room.conn_kind === 'demo') return fail('The demo farm is simulated end to end — Simulate is its live mode.');
     if (!confirmLive) return fail('Confirm that the autopilot will take control of these valves.');

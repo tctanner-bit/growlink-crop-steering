@@ -78,7 +78,12 @@ export default async function RoomPage({ params, searchParams }: { params: Promi
           Map at least one water-content sensor and one irrigation valve before turning the autopilot on. <Link href={`/rooms/${room.id}/setup`}>Open setup</Link>
         </SectionMessage>
       )}
-      {room.mode === 'live' && (
+      {room.mode === 'live' && process.env.LIVE_ENABLED !== '1' && room.conn_kind !== 'demo' && (
+        <SectionMessage appearance="warning" title="Live is disabled — running as Shadow">
+          Live control is locked until valves accept a timed ON command. The controller is treating this room as Shadow: it logs every decision and moves no valves. Switch the mode to Shadow to match.
+        </SectionMessage>
+      )}
+      {room.mode === 'live' && process.env.LIVE_ENABLED === '1' && (
         <SectionMessage appearance="warning" title="Live — Growlink Labs experiment">
           This app is controlling real valves in this room. It is experimental and not yet supported. Check the room in person, keep your Growlink irrigation program ready as a backup, and use <b>All valves off</b> if anything looks wrong.
         </SectionMessage>
@@ -201,7 +206,7 @@ export default async function RoomPage({ params, searchParams }: { params: Promi
         </div>
 
         <aside className="stack gap-300">
-          <RoomControls roomId={room.id} mode={room.mode} paused={room.paused} isDemo={room.conn_kind === 'demo'} valveCount={room.valve_ids.length} maxShotSeconds={cfg.maxShotSeconds} />
+          <RoomControls roomId={room.id} mode={room.mode} paused={room.paused} isDemo={room.conn_kind === 'demo'} valveCount={room.valve_ids.length} maxShotSeconds={cfg.maxShotSeconds} liveEnabled={process.env.LIVE_ENABLED === '1'} />
           <NovaPanel roomId={room.id} aiMode={room.ai_mode} reviews={reviews as any} generating={generating} aiConfigured={!!health?.info?.ai} />
 
           <section className="card stack gap-150" aria-label="Targets">

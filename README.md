@@ -33,6 +33,10 @@ Every night **Nova**, the AI agronomist, reviews the closed cycle against the ph
 
 ## Safety model
 
+> **Live is disabled** until valves accept a timed ON command (see v2 below). The web app refuses to switch a room to Live,
+> the controller runs any real room left in Live as Shadow, and `fireShot` refuses to send ON to a real valve.
+> Unlock deliberately with `LIVE_ENABLED=1` on **both** Vercel and Fly. Shadow and Simulate are unaffected.
+
 Valves are real hardware. The design assumes any process can die at any moment.
 
 1. **Write-ahead valve runs.** Every opening is recorded in `valve_runs` (with `open_until`) *before* the ON command.

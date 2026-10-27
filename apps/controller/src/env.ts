@@ -16,4 +16,9 @@ export const env = {
   instanceId: process.env.FLY_MACHINE_ID ?? process.env.HOSTNAME ?? `controller-${process.pid}`,
   version: process.env.APP_VERSION ?? '0.1.0',
   readingsRetentionDays: Number(process.env.READINGS_RETENTION_DAYS ?? 120),
+  /**
+   * Live control of real valves. OFF until the firmware accepts a timed ON command (v2): with plain
+   * ON/OFF a valve can stay open if the cloud is unreachable mid-shot. Set LIVE_ENABLED=1 to unlock.
+   */
+  liveEnabled: process.env.LIVE_ENABLED === '1',
 };

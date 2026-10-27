@@ -1,3 +1,4 @@
+import { env } from './env';
 import {
   aggregateReadings, detectObservedIrrigation, EngineEvent, GlDeviceReading, GlSensorReading, initialState, recordManualShot,
   step, idKey, describeEvent,
@@ -59,15 +60,21 @@ export async function tick() {
 async function tickRoom(room: Active, api: ReturnType<typeof apiFor>, sensors: GlSensorReading[], devices: GlDeviceReading[], pollError: string | null, now: Date) {
   const cfg = roomConfig(room);
   const tuning = roomTuning(room.phase, room.tuning);
-  const engineMode = room.mode === 'shadow' ? 'shadow' : room.mode === 'live' ? 'live' : 'simulate';
+  // Live is locked (env.liveEnabled): a real room left in Live runs exactly like Shadow.
+  const liveLocked = room.mode === 'live' && !env.liveEnabled && !isSimulated(room, room.conn);
+  const effMode = liveLocked ? 'shadow' : room.mode;
+  const engineMode = effMode === 'shadow' ? 'shadow' : effMode === 'live' ? 'live' : 'simulate';
+  if (liveLocked && lastMode.get(room.id) !== 'live-locked') {
+    await addEvent(room.id, 'mode', 'warning', 'Live control is disabled until valves accept a timed ON command. This room is running as Shadow: decisions are logged, no valves move.');
+  }
 
   // Taking control of real valves: put them in the rest state so no other program irrigates.
-  if (room.mode === 'live' && lastMode.get(room.id) !== 'live' && room.rest_state === 'off' && !isSimulated(room, room.conn)) {
+  if (effMode === 'live' && lastMode.get(room.id) !== 'live' && room.rest_state === 'off' && !isSimulated(room, room.conn)) {
     try { await setAllValves(room, room.conn, room.state, false); }
     catch (e: any) { await addEvent(room.id, 'valve_error', 'critical', `Could not set valves to OFF when taking control: ${e?.message ?? e}`); }
     await addEvent(room.id, 'mode', 'warning', 'Autopilot is now in control of this room\'s valves. Growlink irrigation automation on these valves is overridden.');
   }
-  lastMode.set(room.id, room.mode);
+  lastMode.set(room.id, liveLocked ? 'live-locked' : room.mode);
 
   const readings = aggregateReadings({ wcSensorIds: room.wc_sensor_ids, ecSensorIds: room.ec_sensor_ids }, sensors);
   if (readings.outliers.length) {
@@ -77,7 +84,7 @@ async function tickRoom(room: Active, api: ReturnType<typeof apiFor>, sensors: G
 
   let observed = 0;
   let valveObs = room.state?.valve_obs ?? {};
-  if (room.mode === 'shadow') {
+  if (effMode === 'shadow') {
     const d = detectObservedIrrigation(room.valve_ids, valveObs, devices, now);
     observed = d.seconds; valveObs = d.next;
   }
