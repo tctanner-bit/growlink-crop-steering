@@ -1,10 +1,10 @@
-# Growlink Rock Wool Crop Steering
+# Growlink Autosteer AI
 
 > ⚠️ **Growlink Labs experiment.** Experimental and not yet supported. Use caution before giving it control of
 > real valves: run Shadow first, start with one room, and keep your Growlink irrigation program ready as a backup.
 > Release path: **Labs → Beta → General release.**
 
-Growlink's rock wool crop steering program, running on the Growlink Developer API. Multi-tenant: a grower
+Growlink Autosteer AI runs rock wool crop steering on the Growlink Developer API. Multi-tenant: a grower
 pastes a Growlink API key, maps substrate sensors and irrigation valves, picks a phase, and the program runs
 the daily cycle — P1 ramp, P2 maintenance, P3 overnight dry-back — with full valve control.
 Every night **Nova**, the AI agronomist, reviews the closed cycle against the phase targets and tunes tomorrow.

@@ -8,8 +8,8 @@ import { controllerHealth } from '@/lib/data';
 import { ControllerBadge } from '@/components/ControllerBadge';
 
 export const metadata: Metadata = {
-  title: 'Rock Wool Crop Steering — Growlink',
-  description: 'Growlink rock wool crop steering with AI.',
+  title: 'Growlink Autosteer AI',
+  description: 'AI crop steering that runs your irrigation shot by shot and retunes every night.',
   icons: { icon: '/icon.svg' },
 };
 export const viewport: Viewport = {
@@ -31,10 +31,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </div>
       <header className="topbar">
         <div className="topbar-inner">
-          <Link href="/" className="brand" aria-label="Growlink Labs — Rock Wool Crop Steering, home">
+          <Link href="/" className="brand" aria-label="Growlink Autosteer AI, home">
             <span className="brand-logo" aria-hidden="true" />
             <span className="labs-tag">LABS</span>
-            <span className="brand-app">Rock Wool Crop Steering</span>
+            <span className="brand-app">Autosteer AI</span>
           </Link>
           {user && (
             <nav className="topnav" aria-label="Main">

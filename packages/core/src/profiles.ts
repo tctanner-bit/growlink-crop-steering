@@ -1,4 +1,4 @@
-// Growlink Rock Wool Crop Steering — phase profiles for large rock wool blocks.
+// Growlink Autosteer AI — phase profiles for large rock wool blocks.
 // Root-zone & irrigation targets per phase.
 // Guidance strings are short paraphrases used to brief the AI reviewer.
 

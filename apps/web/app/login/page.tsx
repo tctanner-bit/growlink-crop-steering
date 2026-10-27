@@ -10,7 +10,7 @@ export default async function LoginPage() {
       <div className="stack gap-150">
         <div className="row gap-100"><span className="brand-logo" aria-hidden="true" /><span className="labs-tag">LABS</span></div>
         <Heading size="xlarge">Sign in</Heading>
-        <span className="subtle">Rock Wool Crop Steering</span>
+        <span className="subtle">Growlink Autosteer AI</span>
       </div>
       <LoginForm />
     </div>

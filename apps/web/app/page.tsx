@@ -16,7 +16,7 @@ export default async function RoomsPage() {
     return (
       <div className="stack gap-500">
         <div className="hero-intro">
-          <span className="eyebrow">Growlink Labs · Rock Wool Crop Steering</span>
+          <span className="eyebrow">Growlink Labs · Autosteer AI</span>
           <h1>Your rock wool program, steered every 30 seconds.</h1>
           <p>P1 ramp, P2 maintenance and overnight dry-back, run against your Growlink sensors and valves, and retuned every night by Nova.</p>
           <div className="row gap-150 wrap">

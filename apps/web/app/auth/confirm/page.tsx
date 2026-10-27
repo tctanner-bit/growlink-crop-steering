@@ -2,7 +2,7 @@ import { ConfirmButton } from './ConfirmButton';
 
 const COPY: Record<string, { title: string; body: string; cta: string }> = {
   recovery: { title: 'Reset your password', body: 'Continue to choose a new password.', cta: 'Continue' },
-  magiclink: { title: 'Sign in', body: 'Continue to sign in to Rock Wool Crop Steering.', cta: 'Sign in' },
+  magiclink: { title: 'Sign in', body: 'Continue to sign in to Growlink Autosteer AI.', cta: 'Sign in' },
   email: { title: 'Confirm your email', body: 'Confirm your email to finish setting up your account.', cta: 'Confirm email' },
   signup: { title: 'Confirm your email', body: 'Confirm your email to finish setting up your account.', cta: 'Confirm email' },
 };

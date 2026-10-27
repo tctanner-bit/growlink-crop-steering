@@ -8,7 +8,7 @@ import { aiStatus } from './ai';
 import { syncAllLights } from './lights';
 
 /**
- * Crop Steering Autopilot controller.
+ * Growlink Autosteer AI controller.
  *
  * Exactly one instance leads (Postgres advisory lock) and runs the control loop. Every
  * instance runs the valve watchdog, so a standby closes valves even if the leader dies mid-shot.
@@ -57,7 +57,7 @@ function every(ms: number, name: string, fn: () => Promise<void>) {
 
 async function main() {
   await migrate();
-  console.log(`Crop Steering controller ${env.version} (${env.instanceId}) — tick ${env.tickMs} ms, AI ${aiStatus.configured ? `${aiStatus.provider}/${aiStatus.model}` : 'disabled'}`);
+  console.log(`Autosteer AI controller ${env.version} (${env.instanceId}) — tick ${env.tickMs} ms, AI ${aiStatus.configured ? `${aiStatus.provider}/${aiStatus.model}` : 'disabled'}`);
   every(env.watchdogMs, 'watchdog', watchdog);
   every(5_000, 'leader', tryLead);
   every(10_000, 'heartbeat', heartbeat);

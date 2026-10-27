@@ -2,7 +2,7 @@
   "name": "growlink-crop-steering",
   "private": true,
   "version": "0.1.0",
-  "description": "Growlink Rock Wool Crop Steering \u2014 AI irrigation steering for rock wool, built on the Growlink Developer API",
+  "description": "Growlink Autosteer AI \u2014 AI crop steering, built on the Growlink Developer API",
   "workspaces": [
     "packages/*",
     "apps/*"
